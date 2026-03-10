@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import './MonicaTool.css';
-import './MonicaTool.css';
 import questionsData from '../data/monica_questions.json';
 import { supabase } from '../supabaseClient';
 
@@ -18,17 +17,23 @@ const MonicaTool = ({ area, searchTerm }) => {
 
     // Effect to load data when area changes
     useEffect(() => {
+        let isCancelled = false;
+
         const loadArea = async () => {
             setIsInitialLoad(true);
-            // Reset form immediately to prevent "ghosting" data from previous area
-            setFormData({
+            
+            // 1. Prepare initial empty state for this area
+            const initialState = {
                 evaluador: '',
                 evaluado: '',
                 fecha: new Date().toISOString().split('T')[0],
                 califActual: '',
                 califAnterior: '',
                 respuestas: {}
-            });
+            };
+
+            // 2. Clear state immediately to avoid showing data from the PREVIOUS area
+            setFormData(initialState);
 
             try {
                 // Try fetching from Supabase first
@@ -38,28 +43,38 @@ const MonicaTool = ({ area, searchTerm }) => {
                     .eq('area_name', `monica_${area}`)
                     .single();
 
+                if (isCancelled) return; // Don't apply if area changed while waiting
+
                 if (data && data.data) {
                     setFormData(data.data);
-                    // Sync local storage
                     localStorage.setItem(`monica_${area}`, JSON.stringify(data.data));
                 } else {
-                    // Fallback to local storage if not in DB
+                    // Fallback to local storage
                     const savedData = localStorage.getItem(`monica_${area}`);
-                    if (savedData) {
+                    if (savedData && !isCancelled) {
                         setFormData(JSON.parse(savedData));
                     }
-                    // Else state remains at default reset values
                 }
             } catch (err) {
+                if (isCancelled) return;
                 console.error("Error loading data:", err);
                 const savedData = localStorage.getItem(`monica_${area}`);
                 if (savedData) setFormData(JSON.parse(savedData));
             }
-            // Small timeout to ensure state has settled before allowing auto-save
-            setTimeout(() => setIsInitialLoad(false), 200);
+
+            // Small timeout to allow state to settle
+            if (!isCancelled) {
+                setTimeout(() => {
+                    if (!isCancelled) setIsInitialLoad(false);
+                }, 200);
+            }
         };
 
         loadArea();
+
+        return () => {
+            isCancelled = true;
+        };
     }, [area]);
 
     // Auto-save logic
@@ -184,13 +199,12 @@ const MonicaTool = ({ area, searchTerm }) => {
                             <div className="meta-item">
                                 <label>Área:</label>
                                 <input type="text" value={area} readOnly />
-                            </div>
-                            <div className="meta-item">
+                            </div>                             <div className="meta-item">
                                 <label>Evaluador:</label>
                                 <input
                                     type="text"
                                     value={formData.evaluador}
-                                    onChange={(e) => setFormData({ ...formData, evaluador: e.target.value })}
+                                    onChange={(e) => setFormData(p => ({ ...p, evaluador: e.target.value }))}
                                     placeholder="Nombre del evaluador"
                                 />
                             </div>
@@ -201,7 +215,7 @@ const MonicaTool = ({ area, searchTerm }) => {
                                 <input
                                     type="date"
                                     value={formData.fecha}
-                                    onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
+                                    onChange={(e) => setFormData(p => ({ ...p, fecha: e.target.value }))}
                                 />
                             </div>
                             <div className="meta-item">
@@ -209,11 +223,11 @@ const MonicaTool = ({ area, searchTerm }) => {
                                 <input
                                     type="text"
                                     value={formData.evaluado}
-                                    onChange={(e) => setFormData({ ...formData, evaluado: e.target.value })}
+                                    onChange={(e) => setFormData(p => ({ ...p, evaluado: e.target.value }))}
                                     placeholder="Nombre del evaluado"
                                 />
                             </div>
-                        </div>
+                        </div>v>
                         <div className="meta-row">
                             <div className="meta-item">
                                 <label>N.(NO):</label>
@@ -230,12 +244,12 @@ const MonicaTool = ({ area, searchTerm }) => {
                                             readOnly
                                         />
                                     </div>
-                                    <div className="q-input-group">
+                                     <div className="q-input-group">
                                         <span>Anterior</span>
                                         <input
                                             type="text"
                                             value={formData.califAnterior}
-                                            onChange={(e) => setFormData({ ...formData, califAnterior: e.target.value })}
+                                            onChange={(e) => setFormData(p => ({ ...p, califAnterior: e.target.value }))}
                                         />
                                     </div>
                                 </div>
