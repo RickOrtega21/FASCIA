@@ -27,7 +27,7 @@ function App() {
 
         <div className="content-wrapper">
           {activeTab === 'fepyc' && (
-            <MonicaTool area={selectedArea} searchTerm={searchTerm} />
+            <MonicaTool key={selectedArea} area={selectedArea} searchTerm={searchTerm} />
           )}
 
           {activeTab === 'eri' && (

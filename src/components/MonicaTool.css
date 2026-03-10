@@ -200,6 +200,15 @@
     width: 18px;
     height: 18px;
     cursor: pointer;
+    accent-color: #2ecc40;
+}
+
+.checkbox-cell {
+    transition: background-color 0.2s;
+}
+
+.checked-box {
+    background-color: #d1fae5 !important;
 }
 
 .questions-table textarea {
