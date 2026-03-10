@@ -1,0 +1,314 @@
+.calendar-view-container {
+    padding: 2rem;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    min-height: 80vh;
+}
+
+.calendar-header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.calendar-header-section h1 {
+    color: #002060;
+    margin: 0;
+}
+
+.calendar-selector {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.calendar-dropdown {
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background-color: #f8f9fa;
+    font-size: 1rem;
+    color: #333;
+    cursor: pointer;
+    min-width: 200px;
+}
+
+.calendar-display {
+    display: flex;
+    justify-content: center;
+}
+
+.calendar-card {
+    width: 100%;
+    max-width: 1000px;
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+}
+
+.dynamic-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    padding: 2rem;
+    background-color: #fff;
+}
+
+@media (max-width: 1000px) {
+    .dynamic-calendar-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .dynamic-calendar-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 500px) {
+    .dynamic-calendar-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.calendar-month {
+    text-align: center;
+}
+
+.month-title {
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 0.8rem;
+    font-weight: 700;
+}
+
+.weekdays-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 0.2rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.2rem;
+}
+
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.weekdays-row span {
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #1a73e8;
+    /* Better color for days */
+}
+
+.day-cell {
+    aspect-ratio: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #444;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.day-cell.empty {
+    background-color: transparent;
+}
+
+.day-cell.weekend {
+    color: #999;
+}
+
+.day-cell.highlight-blue {
+    background-color: #b3e5fc;
+    color: #000;
+}
+
+.day-cell.highlight-green {
+    background-color: #c8e6c9;
+    color: #000;
+}
+
+.day-cell.highlight-red {
+    background-color: #ffcdd2;
+    color: #000;
+}
+
+.highlight-blue {
+    background-color: #bbdefb;
+    color: #0d47a1;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+.highlight-green {
+    background-color: #c8e6c9;
+    color: #1b5e20;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+.highlight-red {
+    background-color: #ffcdd2;
+    color: #b71c1c;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+/* Colors for Reports Calendar */
+.highlight-red-pol {
+    background-color: #ffcdd2;
+    color: #b71c1c;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+.highlight-org-man {
+    background-color: #ffe0b2;
+    color: #e65100;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+.highlight-purp-cap {
+    background-color: #e1bee7;
+    color: #4a148c;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+.highlight-blue-inf {
+    background-color: #bbdefb;
+    color: #0d47a1;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+/* Legend Styles */
+.calendar-legend-container {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.legend-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+/* Original SCI Legend */
+.legend-box.semestral {
+    background-color: #bbdefb;
+}
+
+.legend-box.evaluacion {
+    background-color: #c8e6c9;
+}
+
+.legend-box.cierres {
+    background-color: #ffcdd2;
+}
+
+/* Reports Legend */
+.legend-box.pol {
+    background-color: #ffcdd2;
+}
+
+.legend-box.man {
+    background-color: #ffe0b2;
+}
+
+.legend-box.cap {
+    background-color: #e1bee7;
+}
+
+.legend-box.inf {
+    background-color: #bbdefb;
+}
+
+.calendar-footer {
+    padding: 1rem 2rem;
+    background-color: #002060;
+    color: white;
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.calendar-footer p {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.calendar-legend-container {
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: center;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.legend-box {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.legend-box.semestral {
+    background-color: #b3e5fc;
+}
+
+.legend-box.evaluacion {
+    background-color: #c8e6c9;
+}
+
+.legend-box.cierres {
+    background-color: #ffcdd2;
+}
+
+.legend-label {
+    font-size: 0.95rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.calendar-placeholder {
+    padding: 4rem;
+    text-align: center;
+    color: #999;
+    font-style: italic;
+}

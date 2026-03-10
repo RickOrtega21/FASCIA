@@ -1,0 +1,175 @@
+.quarterly-view {
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+.quarterly-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 2px solid #eee;
+}
+
+.q-main-title {
+    color: #4ba3e3;
+    /* Light blue title from image */
+    font-size: 2rem;
+    margin: 0 0 1rem 0;
+    font-weight: normal;
+}
+
+.q-legend-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    justify-content: flex-start;
+}
+
+.q-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: #555;
+    font-weight: 500;
+}
+
+.q-box {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+}
+
+.q-box.duracion {
+    background-color: #8cc6e7;
+}
+
+.q-box.evaluacion {
+    background-color: #b0cf91;
+}
+
+.q-box.reunion {
+    background-color: #c4b49c;
+}
+
+.q-box.entregas {
+    background-color: #f5dfb8;
+}
+
+.q-box.analisis {
+    background-color: #fa8cf8;
+}
+
+.q-gantt-wrapper {
+    padding: 2rem;
+    overflow-x: auto;
+    /* Allow horizontal scroll if needed */
+    background-color: #fff;
+}
+
+.q-gantt-table {
+    display: grid;
+    grid-template-columns: 280px repeat(17, minmax(30px, 1fr));
+    border-bottom: 1px solid #ccc;
+    position: relative;
+    gap: 0;
+}
+
+.q-row {
+    display: contents;
+}
+
+.q-activity-col {
+    grid-column: 1;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid #eee;
+    font-size: 0.85rem;
+    color: #333;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid #ccc;
+    /* vertical line separating activities from chart */
+    background-color: #fff;
+    z-index: 2;
+}
+
+.font-bold {
+    font-weight: bold;
+}
+
+.q-row-header .q-activity-col {
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 1px solid #ccc;
+    font-weight: bold;
+    color: #666;
+    padding-bottom: 0.2rem;
+}
+
+.q-days-text {
+    font-size: 0.7rem;
+    color: #666;
+}
+
+.q-day-num {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #333;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0.2rem;
+    border-right: 1px dashed #f0f0f0;
+}
+
+.q-bar {
+    margin: 4px 0;
+    border-radius: 2px;
+    z-index: 1;
+    min-height: 24px;
+}
+
+.bar-duracion {
+    background-color: #8cc6e7;
+}
+
+.bar-entr {
+    background-color: #f5dfb8;
+}
+
+.bar-eval {
+    background-color: #b0cf91;
+}
+
+.bar-anal {
+    background-color: #fa8cf8;
+}
+
+.bar-reun {
+    background-color: #c4b49c;
+    margin-bottom: 1.5rem;
+}
+
+/* Grid lines simulating the calendar background */
+.q-grid-lines {
+    display: contents;
+}
+
+.q-grid-lines>div {
+    grid-row: 2 / -1;
+    /* from under header to bottom */
+    border-right: 1px solid #f2f2f2;
+    z-index: 0;
+}
+
+.q-grid-lines .q-activity-col-spacer {
+    grid-column: 1;
+    border-right: 1px solid #ccc;
+}
+
+/* Force specific border removing from last elements if needed */
+.q-gantt-table>.q-row:last-child>.q-activity-col {
+    border-bottom: none;
+}

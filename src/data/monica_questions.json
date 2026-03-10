@@ -1,0 +1,197 @@
+[
+  {
+    "id": 1,
+    "component": "COMPONENTE I: AMBIENTE DE CONTROL",
+    "shortName": "Ambi Control",
+    "questions": [
+      {
+        "n": 1,
+        "text": "¿Se difunden la visión y la misión de la Institución entre el personal?"
+      },
+      {
+        "n": 2,
+        "text": "¿El personal conoce el objetivo general, las funciones, el impacto de su trabajo y las líneas de reporte?"
+      },
+      {
+        "n": 3,
+        "text": "¿Las operaciones del área promueven el cumplimiento de la integridad y los valores éticos?"
+      },
+      {
+        "n": 4,
+        "text": "¿En el desarrollo de las actividades del área se fomenta la integridad y los valores éticos?"
+      },
+      {
+        "n": 5,
+        "text": "¿Las políticas, procesos y manuales que regulan las actividades del área se encuentran difundidas?"
+      },
+      {
+        "n": 6,
+        "text": "¿Los perfiles y descripciones de puestos están debidamente definidos?"
+      },
+      {
+        "n": 7,
+        "text": "¿Se difunden entre los colaboradores las políticas, guías de responsabilidad y las líneas de reporte?"
+      },
+      {
+        "n": 8,
+        "text": "¿Se difunden y se capacita al personal en los mecanismos para la prevención de conflictos de interés?"
+      },
+      {
+        "n": 9,
+        "text": "¿Se conocen y/o se integran mecanismos para la prevención de conflictos de interés?"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "component": "COMPONENTE II: ADMINISTRACIÓN DE RIESGOS",
+    "shortName": "Admi Riesgo",
+    "questions": [
+      {
+        "n": 10,
+        "text": "¿Se difunden entre el personal de nuevo ingreso los objetivos de cumplimiento y operativos del área?"
+      },
+      {
+        "n": 11,
+        "text": "¿Se promueve una cultura de gestión de riesgos en las actividades administrativas y operativas del área?"
+      },
+      {
+        "n": 12,
+        "text": "¿Se realiza y documenta la evaluación de riesgos de los procesos a su cargo?"
+      },
+      {
+        "n": 13,
+        "text": "¿En la evaluación de riesgos de los procesos y subprocesos a su cargo participan los dueños del riesgo?"
+      },
+      {
+        "n": 14,
+        "text": "¿Los procesos clave cuentan con matrices de riesgos, planes de acción y controles asociados?"
+      },
+      {
+        "n": 15,
+        "text": "¿Las matrices de riesgos, planes de acción y controles se monitorean?"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "component": "COMPONENTE III: ACTIVIDADES DE CONTROL",
+    "shortName": "Actv Control",
+    "questions": [
+      {
+        "n": 16,
+        "text": "¿Los controles implementados dentro de las funciones y procesos a su cargo mitigan los riesgos?"
+      },
+      {
+        "n": 17,
+        "text": "¿Los controles implementados se encuentran documentados e integrados por procesos?"
+      },
+      {
+        "n": 18,
+        "text": "¿Se da cumplimiento a las actividades definidas en los procesos y procedimientos del área?"
+      },
+      {
+        "n": 19,
+        "text": "¿Las políticas, procedimientos y manuales principales estiman la mitigación de los riesgos del proceso?"
+      },
+      {
+        "n": 20,
+        "text": "¿Las principales funciones y procesos operados en el área se encuentran documentados?"
+      },
+      {
+        "n": 21,
+        "text": "¿Los sistemas de información implementados cuentan con controles de acceso y seguridad?"
+      },
+      {
+        "n": 22,
+        "text": "¿Se tienen implementados controles para asegurar que el personal sea el idóneo para el puesto?"
+      },
+      {
+        "n": 23,
+        "text": "¿Existen planes de acción para desarrollar actividades y cumplimiento de objetivos?"
+      },
+      {
+        "n": 24,
+        "text": "¿Se documenta el control y seguimiento de estos planes de acción?"
+      },
+      {
+        "n": 25,
+        "text": "¿Se difunden al personal del área los planes de acción?"
+      },
+      {
+        "n": 26,
+        "text": "¿Se dispone de los recursos institucionales (financieros, tecnológicos) para desarrollar planes de acción?"
+      },
+      {
+        "n": 27,
+        "text": "¿Se evalúa periódicamente la efectividad de las actividades de control?"
+      },
+      {
+        "n": 28,
+        "text": "¿Es posible monitorear los principales procesos o actividades a su cargo?"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "component": "COMPONENTE IV: INFORMACIÓN Y COMUNICACIÓN",
+    "shortName": "Infor y Comu",
+    "questions": [
+      {
+        "n": 29,
+        "text": "¿Las actividades de control contribuyen a que la Información sea veraz y oportuna?"
+      },
+      {
+        "n": 30,
+        "text": "¿Los sistemas de información implementados garantizan la calidad de la información generada?"
+      },
+      {
+        "n": 31,
+        "text": "¿La Información fluye entre las actividades a través de los canales y/o medios formales?"
+      },
+      {
+        "n": 32,
+        "text": "¿Se encuentran formalmente establecidas las líneas de comunicación de información interna?"
+      },
+      {
+        "n": 33,
+        "text": "¿Las líneas de comunicación e información permiten el flujo de la misma de manera efectiva?"
+      },
+      {
+        "n": 34,
+        "text": "¿Las líneas de comunicación e información facilitan la comunicación con clientes y proveedores?"
+      },
+      {
+        "n": 35,
+        "text": "¿Es posible evaluar la efectividad de las líneas de comunicación de información?"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "component": "COMPONENTE V: SUPERVISIÓN Y SEGUIMIENTO",
+    "shortName": "Superv y Seg",
+    "questions": [
+      {
+        "n": 36,
+        "text": "¿Se evalúa que los controles existentes están presentes y funcionan de manera efectiva?"
+      },
+      {
+        "n": 37,
+        "text": "¿Se comunican las deficiencias de los controles de manera oportuna a los responsables del área?"
+      },
+      {
+        "n": 38,
+        "text": "¿Se atienden las deficiencias únicamente en función de la disponibilidad de recursos?"
+      },
+      {
+        "n": 39,
+        "text": "¿Se implementan las medidas correctivas derivadas de los planes de acción de forma oportuna?"
+      },
+      {
+        "n": 40,
+        "text": "¿Se atienden las recomendaciones de auditores internos y externos?"
+      }
+    ]
+  }
+]

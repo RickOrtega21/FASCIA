@@ -1,0 +1,154 @@
+/* Layout and Positioning */
+.eri-container {
+    background: white;
+    padding: 2rem;
+    color: #333;
+    font-family: Arial, sans-serif;
+    overflow-x: auto;
+}
+
+.eri-header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 2rem;
+}
+
+/* FEPYC Style Header */
+.eri-title-section-fepyc {
+    display: flex;
+    align-items: center;
+    border-left: 6px solid #005bb5;
+    /* FEPYC blue sidebar */
+    padding-left: 1rem;
+    margin-bottom: 2rem;
+}
+
+.eri-title-section-fepyc h1 {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #002060;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.eri-top-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    align-items: center;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+}
+
+.eri-charts-section {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.eri-tables-section {
+    display: flex;
+    justify-content: center;
+    gap: 4rem;
+    width: 100%;
+}
+
+.eri-chart-card {
+    flex: 1;
+    background: white;
+    border: 1px solid #dee2e6;
+    padding: 1rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.eri-atributos-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.chart-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #002060;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.eri-side-tables {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    align-items: center;
+    /* Center horizontally in right column */
+}
+
+/* Base Unified Table Styling derived from FEPYC layout */
+.eri-styled-table {
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+/* More compact FEPYC borders */
+.eri-styled-table th,
+.eri-styled-table td {
+    border: 1px solid #dee2e6;
+    padding: 0.25rem 0.4rem;
+}
+
+/* FEPYC Style Light Blue Header */
+.eri-table-light-header {
+    background-color: #63d2ff !important;
+    color: #002060 !important;
+    font-weight: bold;
+}
+
+/* FEPYC Style Dark Blue Header/Total Row */
+.eri-table-dark-header {
+    background-color: #002060 !important;
+    color: white !important;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+/* FEPYC Conditional Status Colors */
+.status-red {
+    background-color: #ffcccc !important;
+    color: #d32f2f !important;
+    font-weight: bold;
+}
+
+.status-yellow {
+    background-color: #fffac1 !important;
+    color: #b7950b !important;
+    font-weight: bold;
+}
+
+.status-green {
+    background-color: #d4edda !important;
+    color: #155724 !important;
+    font-weight: bold;
+}
+
+/* Table specifics */
+.eri-main-table {
+    width: 100%;
+}
+
+.resumen-principios {
+    min-width: 250px;
+}
+
+.row-header {
+    text-align: left !important;
+    background-color: transparent !important;
+    font-weight: normal;
+    color: #333 !important;
+}
+
+.font-bold {
+    font-weight: bold;
+}
