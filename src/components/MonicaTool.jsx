@@ -227,7 +227,7 @@ const MonicaTool = ({ area, searchTerm }) => {
                                     placeholder="Nombre del evaluado"
                                 />
                             </div>
-                        </div>v>
+                        </div>
                         <div className="meta-row">
                             <div className="meta-item">
                                 <label>N.(NO):</label>
