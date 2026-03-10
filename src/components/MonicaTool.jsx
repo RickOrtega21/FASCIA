@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './MonicaTool.css';
 import questionsData from '../data/monica_questions.json';
 import { supabase } from '../supabaseClient';
 
 const MonicaTool = ({ area, searchTerm }) => {
+    const isRemoteUpdate = useRef(false);
     const [formData, setFormData] = useState({
         evaluador: '',
         evaluado: '',
@@ -56,12 +57,15 @@ const MonicaTool = ({ area, searchTerm }) => {
                     filter: `area_name=eq.${areaKey}`
                 },
                 (payload) => {
+                    console.log(`Realtime update received for ${areaKey}:`, payload);
                     if (payload.new && payload.new.data) {
-                        // Update state only if it's different to avoid loops
-                        // We use a functional update to get current state
+                        const remoteData = payload.new.data;
+                        
                         setFormData(current => {
-                            const remoteData = payload.new.data;
+                            // Only update if remote data is actually different
                             if (JSON.stringify(current) !== JSON.stringify(remoteData)) {
+                                console.log("Applying remote update to state");
+                                isRemoteUpdate.current = true;
                                 return remoteData;
                             }
                             return current;
@@ -69,24 +73,38 @@ const MonicaTool = ({ area, searchTerm }) => {
                     }
                 }
             )
-            .subscribe();
+            .subscribe((status) => {
+                console.log(`Realtime subscription status for ${areaKey}:`, status);
+            });
 
         return () => {
+            console.log(`Unsubscribing from ${areaKey}`);
             supabase.removeChannel(channel);
         };
-    }, [area]); // Re-subscribe if area changes
+    }, [area]);
 
     // Auto-save logic
     useEffect(() => {
         if (!loading) {
+            // Se sincroniza con localStorage siempre
             localStorage.setItem(`monica_${area}`, JSON.stringify(formData));
             
+            // Solo sincronizamos con Supabase si el cambio fue LOCAL
+            if (isRemoteUpdate.current) {
+                console.log("Remote update detected, skipping auto-save loop");
+                isRemoteUpdate.current = false;
+                return;
+            }
+
             const syncToSupabase = async () => {
-                await supabase.from('evaluations_state').upsert({
+                console.log(`Syncing local changes to Supabase for ${area}...`);
+                const { error } = await supabase.from('evaluations_state').upsert({
                     area_name: `monica_${area}`,
                     data: formData,
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'area_name' });
+                
+                if (error) console.error("Sync error:", error);
             };
             syncToSupabase();
             window.dispatchEvent(new Event('monicaDataUpdated'));

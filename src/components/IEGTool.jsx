@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import './IEGTool.css';
 import questionsData from '../data/monica_questions.json';
 import html2pdf from 'html2pdf.js';
+import { supabase } from '../supabaseClient';
 
 const AREAS = [
     'Operaciones', 'Sistemas', 'Recursos Humanos', 'Comercial',

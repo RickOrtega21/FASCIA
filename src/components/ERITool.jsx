@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import './ERITool.css';
 import questionsData from '../data/monica_questions.json';
+import { supabase } from '../supabaseClient';
 
 const AREAS = [
     'Operaciones', 'Sistemas', 'Recursos Humanos', 'Comercial',
