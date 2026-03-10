@@ -68,6 +68,7 @@ const IEGTool = () => {
         const aggregatedAreas = [];
         let gtComp1 = 0, gtComp2 = 0, gtComp3 = 0, gtComp4 = 0, gtComp5 = 0;
         let gtCalificacion = 0, gtNoCount = 0, gtPctCumplimiento = 0;
+        let gtCalificacionAnterior = 0;
 
         const globalNoCounts = {};
 
@@ -75,6 +76,7 @@ const IEGTool = () => {
             const savedDataStr = localStorage.getItem(`monica_${area}`);
             const savedData = savedDataStr ? JSON.parse(savedDataStr) : null;
             const respuestas = savedData?.respuestas || {};
+            const califAnterior = parseFloat(savedData?.califAnterior) || 0;
 
             let c1Raw = 0, c2Raw = 0, c3Raw = 0, c4Raw = 0, c5Raw = 0;
             let areaNoCount = 0;
@@ -110,9 +112,25 @@ const IEGTool = () => {
 
             gtComp1 += comp1; gtComp2 += comp2; gtComp3 += comp3; gtComp4 += comp4; gtComp5 += comp5;
             gtCalificacion += calificacion;
+            gtCalificacionAnterior += califAnterior;
             gtNoCount += areaNoCount;
             gtPctCumplimiento += pctCumplimiento;
         });
+
+        const numAreas = AREAS.length;
+        const instActual = Math.round(gtCalificacion / numAreas);
+        const instAnterior = Math.round(gtCalificacionAnterior / numAreas);
+
+        let institutionalMejora = '0%';
+        if (instActual > 0 && instAnterior > 0) {
+            if (instActual === instAnterior) institutionalMejora = '0%';
+            else if (instActual > instAnterior) institutionalMejora = Math.round((1 - instAnterior / instActual) * 100) + '%';
+            else institutionalMejora = '-' + Math.round((1 - instActual / instAnterior) * 100) + '%';
+        } else if (instActual > 0 && instAnterior === 0) {
+            institutionalMejora = '100%';
+        } else if (instActual === 0 && instAnterior > 0) {
+            institutionalMejora = '-100%';
+        }
 
         const numAreas = AREAS.length;
         const globalTotals = {
@@ -145,7 +163,8 @@ const IEGTool = () => {
             ...prev,
             areasData: aggregatedAreas,
             globalTotals,
-            noAnalysis: analysis
+            noAnalysis: analysis,
+            institutionalMejora
         }));
     };
 
@@ -215,7 +234,7 @@ const IEGTool = () => {
                         El objetivo del documento es informar al Director General sobre la operación y el estado actual del Sistema de Contraloría Interna en La Latinoamericana Seguros, S. A. (La Institución) en cumplimiento con la Circular Única de Seguros y Fianzas (CUSF) en su Título 3, capítulo 3.3, disposición 3.3.4. Informando el nivel de cumplimiento de los principios y componentes del SCI y las acciones a tomar para la mejora continua de las operaciones de la Institución con base en los Mecanismos Operacionales del Nivel de Control en las Áreas.
                     </p>
                     <p className="ieg-paragraph">
-                        En este periodo el desempeño de las actividades refleja que el cumplimiento a las políticas y procedimientos registrados consta del <strong>{dataState.globalTotals.pctCumplimiento}%</strong>, dado a que se encontraron una cantidad de <strong>{dataState.globalTotals.noCount}</strong> de deficiencias en las actividades de todas las áreas durante el periodo de evaluación, así mismo la tasa de mejora en el sistema para este semestre es de <strong>100%</strong> como resultado de un seguimiento trimestral.
+                        En este periodo el desempeño de las actividades refleja que el cumplimiento a las políticas y procedimientos registrados consta del <strong>{dataState.globalTotals.pctCumplimiento}%</strong>, dado a que se encontraron una cantidad de <strong>{dataState.globalTotals.noCount}</strong> de deficiencias en las actividades de todas las áreas durante el periodo de evaluación, así mismo la tasa de mejora en el sistema para este semestre es de <strong>{dataState.institutionalMejora || '0%'}</strong> como resultado de un seguimiento trimestral.
                     </p>
                     <p className="ieg-paragraph">
                         Por lo anterior, la eficiencia del Sistema de Contraloría Interna obtiene una calificación de <strong>{dataState.globalTotals.calificacion}</strong> puntos de 100 en el cumplimiento de sus principios y componentes a nivel institucional representados en la siguiente tabla.
@@ -447,11 +466,16 @@ const IEGTool = () => {
                                 })
                             });
 
-                            if (response.ok) alert("Informe enviado con éxito.");
-                            else alert("Hubo un error al enviar el correo.");
+                            if (response.ok) {
+                                alert("¡Informe enviado con éxito!");
+                            } else {
+                                const errData = await response.json();
+                                console.error("Error en servidor:", errData);
+                                alert(`Error al enviar correo: ${errData.details || 'Error desconocido'}`);
+                            }
                         } catch (e) {
-                            console.error(e);
-                            alert("Error al procesar el documento.");
+                            console.error("Fetch Error:", e);
+                            alert(`Error crítico al procesar el documento: ${e.message}`);
                         }
                     }}>
                         <span style={{ marginRight: '8px' }}>📧</span> Exportar en PDF y Enviarlo por Correo

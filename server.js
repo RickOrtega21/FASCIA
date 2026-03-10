@@ -27,9 +27,11 @@ app.post('/api/send-email', (req, res) => {
         return res.status(400).json({ error: 'Faltan parámetros requeridos (to, subject, message, pdfBase64)' });
     }
 
-    // El pdfBase64 normalmente viene como "data:application/pdf;base64,JVBERi0..."
-    // Necesitamos quitar el prefijo para adjuntarlo correctamente.
-    const base64Data = pdfBase64.replace(/^data:application\/pdf;base64,/, "");
+    // Strip base64 prefix if present
+    let base64Data = pdfBase64;
+    if (pdfBase64.includes('base64,')) {
+        base64Data = pdfBase64.split('base64,')[1];
+    }
 
     const mailOptions = {
         from: '"FASCIA App" <ricardoortega341@gmail.com>',
@@ -45,12 +47,18 @@ app.post('/api/send-email', (req, res) => {
         ]
     };
 
+    console.log(`Intentando enviar correo a: ${to}...`);
+
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-            console.error('Error enviando correo:', error);
-            return res.status(500).json({ error: 'Error enviando correo', details: error.message });
+            console.error('SERVER_MAIL_ERROR:', error);
+            return res.status(500).json({ 
+                error: 'Error enviando correo', 
+                details: error.message,
+                code: error.code
+            });
         }
-        console.log('Correo enviado: %s', info.messageId);
+        console.log('Correo enviado con éxito: %s', info.messageId);
         res.status(200).json({ success: true, messageId: info.messageId });
     });
 });

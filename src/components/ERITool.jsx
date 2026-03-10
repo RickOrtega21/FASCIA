@@ -91,14 +91,21 @@ const ERITool = () => {
 
                 // % Mejora: compare actual vs anterior
                 let pctMejora = '—';
-                if (califActual > 0 && califAnterior > 0) {
-                    if (califActual > califAnterior) {
-                        pctMejora = Math.round((1 - califAnterior / califActual) * 100) + '%';
-                    } else if (califAnterior > 0) {
-                        pctMejora = Math.round((1 - califActual / califAnterior) * 100) + '%';
-                    } else {
+                const actual = parseFloat(califActual) || 0;
+                const anterior = parseFloat(califAnterior) || 0;
+
+                if (actual > 0 && anterior > 0) {
+                    if (actual === anterior) {
                         pctMejora = '0%';
+                    } else if (actual > anterior) {
+                        pctMejora = Math.round((1 - anterior / actual) * 100) + '%';
+                    } else {
+                        pctMejora = '-' + Math.round((1 - actual / anterior) * 100) + '%';
                     }
+                } else if (actual > 0 && anterior === 0) {
+                    pctMejora = '100%';
+                } else if (actual === 0 && anterior > 0) {
+                    pctMejora = '-100%';
                 }
 
                 aggregatedData.push({
