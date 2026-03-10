@@ -16,8 +16,8 @@ export default async function handler(req, res) {
         port: 587,
         secure: false, 
         auth: {
-            user: 'ricardoortega341@gmail.com',
-            pass: 'tczp kfas kwir qkjl'
+            user: process.env.EMAIL_USER || 'ricardoortega341@gmail.com',
+            pass: process.env.EMAIL_PASS || 'tczp kfas kwir qkjl'
         }
     });
 
