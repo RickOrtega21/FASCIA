@@ -58,13 +58,22 @@
     width: 100%;
 }
 
-.no-counter {
-    background-color: #fff5f5;
-    color: var(--danger);
+.monica-container .no-counter {
+    background-color: #002060;
+    color: white;
     font-weight: bold;
     text-align: center;
+    border-radius: 4px;
 }
 
+/* Selected row highlight */
+.row-selected {
+    background-color: #d1fae5 !important;
+}
+
+.row-selected td {
+    background-color: transparent !important;
+}
 .resumen-panel {
     width: 400px;
 }

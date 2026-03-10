@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './MonicaTool.css';
 import questionsData from '../data/monica_questions.json';
 import { supabase } from '../supabaseClient';
@@ -14,15 +14,17 @@ const MonicaTool = ({ area, searchTerm }) => {
     });
 
     const [isInitialLoad, setIsInitialLoad] = useState(true);
+    const currentAreaRef = useRef(area);
 
     // Effect to load data when area changes
     useEffect(() => {
         let isCancelled = false;
+        
+        // Synchronously mark as loading and update ref to current area
+        setIsInitialLoad(true);
+        currentAreaRef.current = area;
 
         const loadArea = async () => {
-            setIsInitialLoad(true);
-            
-            // 1. Prepare initial empty state for this area
             const initialState = {
                 evaluador: '',
                 evaluado: '',
@@ -32,24 +34,23 @@ const MonicaTool = ({ area, searchTerm }) => {
                 respuestas: {}
             };
 
-            // 2. Clear state immediately to avoid showing data from the PREVIOUS area
+            // Reset local state immediately
             setFormData(initialState);
 
             try {
-                // Try fetching from Supabase first
+                // Try fetching from Supabase
                 const { data, error } = await supabase
                     .from('evaluations_state')
                     .select('data')
                     .eq('area_name', `monica_${area}`)
                     .single();
 
-                if (isCancelled) return; // Don't apply if area changed while waiting
+                if (isCancelled) return;
 
                 if (data && data.data) {
                     setFormData(data.data);
                     localStorage.setItem(`monica_${area}`, JSON.stringify(data.data));
                 } else {
-                    // Fallback to local storage
                     const savedData = localStorage.getItem(`monica_${area}`);
                     if (savedData && !isCancelled) {
                         setFormData(JSON.parse(savedData));
@@ -62,11 +63,11 @@ const MonicaTool = ({ area, searchTerm }) => {
                 if (savedData) setFormData(JSON.parse(savedData));
             }
 
-            // Small timeout to allow state to settle
             if (!isCancelled) {
+                // Ensure we don't enable auto-save until state is fully settled for THIS area
                 setTimeout(() => {
                     if (!isCancelled) setIsInitialLoad(false);
-                }, 200);
+                }, 100);
             }
         };
 
@@ -77,12 +78,12 @@ const MonicaTool = ({ area, searchTerm }) => {
         };
     }, [area]);
 
-    // Auto-save logic
+    // Auto-save logic with STRICT area guarding
     useEffect(() => {
-        if (!isInitialLoad) {
+        // SAFETY: Only save if we are NOT in initial load phase AND the area matches our ref
+        if (!isInitialLoad && currentAreaRef.current === area) {
             localStorage.setItem(`monica_${area}`, JSON.stringify(formData));
 
-            // Backup to Supabase transparently
             const saveToSupabase = async () => {
                 try {
                     await supabase
@@ -107,7 +108,7 @@ const MonicaTool = ({ area, searchTerm }) => {
             ...prev,
             respuestas: {
                 ...prev.respuestas,
-                [questionId]: value
+                [questionId]: prev.respuestas[questionId] === value ? undefined : value
             }
         }));
     };
@@ -132,7 +133,6 @@ const MonicaTool = ({ area, searchTerm }) => {
         return 'status-green';
     };
 
-    // Calculations
     const calculateTotals = () => {
         const totals = {
             siPts: 0,
@@ -169,7 +169,7 @@ const MonicaTool = ({ area, searchTerm }) => {
             totals.porComponente[comp.id] = {
                 siPts: compSiPts,
                 parcialPts: compParcialPts,
-                noPts: 0, // Requirements say represent as 0 points
+                noPts: 0,
                 total: weightedTotal,
                 name: comp.shortName
             };
@@ -180,7 +180,6 @@ const MonicaTool = ({ area, searchTerm }) => {
 
     const totals = calculateTotals();
 
-    // Filter questions based on searchTerm
     const filteredData = questionsData.map(comp => ({
         ...comp,
         questions: comp.questions.filter(q =>
@@ -199,7 +198,8 @@ const MonicaTool = ({ area, searchTerm }) => {
                             <div className="meta-item">
                                 <label>Área:</label>
                                 <input type="text" value={area} readOnly />
-                            </div>                             <div className="meta-item">
+                            </div>
+                            <div className="meta-item">
                                 <label>Evaluador:</label>
                                 <input
                                     type="text"
@@ -244,7 +244,7 @@ const MonicaTool = ({ area, searchTerm }) => {
                                             readOnly
                                         />
                                     </div>
-                                     <div className="q-input-group">
+                                    <div className="q-input-group">
                                         <span>Anterior</span>
                                         <input
                                             type="text"
@@ -318,7 +318,7 @@ const MonicaTool = ({ area, searchTerm }) => {
                             </thead>
                             <tbody>
                                 {comp.questions.map((q) => (
-                                    <tr key={q.n}>
+                                    <tr key={q.n} className={formData.respuestas[q.n] ? 'row-selected' : ''}>
                                         <td>{q.n}</td>
                                         <td>{q.text}</td>
                                         <td className="center">
@@ -343,7 +343,7 @@ const MonicaTool = ({ area, searchTerm }) => {
                                             />
                                         </td>
                                         <td>
-                                            <textarea placeholder="Documentación de soporte..."></textarea>
+                                            <textarea placeholder="Documentación de soporte..." defaultValue={formData.respuestas[q.n+ '_soporte'] || ''} onBlur={(e) => setFormData(p => ({...p, respuestas: {...p.respuestas, [q.n + '_soporte']: e.target.value}}))}></textarea>
                                         </td>
                                     </tr>
                                 ))}
@@ -352,8 +352,6 @@ const MonicaTool = ({ area, searchTerm }) => {
                     </div>
                 ))}
             </div>
-
-            {/* Save button removed in favor of auto-save */}
         </div>
     );
 };
