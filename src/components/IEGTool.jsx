@@ -133,8 +133,7 @@ const IEGTool = () => {
         } else if (instActual === 0 && instAnterior > 0) {
             institutionalMejora = '-100%';
         }
-
-        const numAreas = AREAS.length;
+        
         const globalTotals = {
             comp1: Math.round(gtComp1 / numAreas),
             comp2: Math.round(gtComp2 / numAreas),
