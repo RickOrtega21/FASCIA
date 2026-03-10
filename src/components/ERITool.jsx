@@ -97,10 +97,9 @@ const ERITool = () => {
                 if (actual > 0 && anterior > 0) {
                     if (actual === anterior) {
                         pctMejora = '0%';
-                    } else if (actual > anterior) {
-                        pctMejora = Math.round((1 - anterior / actual) * 100) + '%';
                     } else {
-                        pctMejora = '-' + Math.round((1 - actual / anterior) * 100) + '%';
+                        const growth = Math.round(((actual - anterior) / anterior) * 100);
+                        pctMejora = (growth > 0 ? '+' : '') + growth + '%';
                     }
                 } else if (actual > 0 && anterior === 0) {
                     pctMejora = '100%';

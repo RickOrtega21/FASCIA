@@ -7,10 +7,6 @@ const ReportsHistory = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchReports();
-    }, []);
-
     const fetchReports = async () => {
         setLoading(true);
         // Supabase query to get reports history
@@ -28,6 +24,10 @@ const ReportsHistory = () => {
         }
         setLoading(false);
     };
+
+    useEffect(() => {
+        fetchReports();
+    }, []);
 
     const filteredReports = reports.filter(report =>
         (report.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||

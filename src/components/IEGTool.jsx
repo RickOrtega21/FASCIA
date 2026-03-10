@@ -124,8 +124,10 @@ const IEGTool = () => {
         let institutionalMejora = '0%';
         if (instActual > 0 && instAnterior > 0) {
             if (instActual === instAnterior) institutionalMejora = '0%';
-            else if (instActual > instAnterior) institutionalMejora = Math.round((1 - instAnterior / instActual) * 100) + '%';
-            else institutionalMejora = '-' + Math.round((1 - instActual / instAnterior) * 100) + '%';
+            else {
+                const growth = Math.round(((instActual - instAnterior) / instAnterior) * 100);
+                institutionalMejora = (growth > 0 ? '+' : '') + growth + '%';
+            }
         } else if (instActual > 0 && instAnterior === 0) {
             institutionalMejora = '100%';
         } else if (instActual === 0 && instAnterior > 0) {
@@ -454,7 +456,7 @@ const IEGTool = () => {
                             };
                             await supabase.from('reports_history').insert([historyData]).catch(console.error);
 
-                            const response = await fetch('http://localhost:3001/api/send-email', {
+                            const response = await fetch('/api/send-email', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
