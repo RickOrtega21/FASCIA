@@ -134,9 +134,12 @@ const ERITool = () => {
                         calificacion, noCount, pctCumplimiento, pctMejora
                     });
 
-                    gtCalificacion += calificacion;
-                    gtNoCount += noCount;
-                    gtPctCumplimiento += pctCumplimiento;
+                    if (area !== 'Auditoria') {
+                        gtComp1 += comp1; gtComp2 += comp2; gtComp3 += comp3; gtComp4 += comp4; gtComp5 += comp5;
+                        gtCalificacion += calificacion;
+                        gtNoCount += noCount;
+                        gtPctCumplimiento += pctCumplimiento;
+                    }
                 });
 
                 const filteredAreasCount = AREAS.filter(a => a !== 'Auditoria').length;
