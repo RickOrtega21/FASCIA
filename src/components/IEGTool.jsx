@@ -197,9 +197,29 @@ const IEGTool = () => {
 
     useEffect(() => {
         loadAllData();
+        
+        // Subscribe to ANY update in evaluations_state to refresh the report
+        const channel = supabase
+            .channel('ieg_realtime_sync')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*', // Listen to INSERT, UPDATE, DELETE
+                    schema: 'public',
+                    table: 'evaluations_state'
+                },
+                () => {
+                    // Refresh data when any area changes
+                    loadAllData();
+                }
+            )
+            .subscribe();
+
+        // Listen for local updates (MonicaTool in same window)
         window.addEventListener('storage', loadAllData);
         window.addEventListener('monicaDataUpdated', loadAllData);
         return () => {
+            supabase.removeChannel(channel);
             window.removeEventListener('storage', loadAllData);
             window.removeEventListener('monicaDataUpdated', loadAllData);
         };

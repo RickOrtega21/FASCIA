@@ -27,6 +27,27 @@ const ReportsHistory = () => {
 
     useEffect(() => {
         fetchReports();
+
+        // Subscribe to NEW reports in the history
+        const channel = supabase
+            .channel('reports_realtime_sync')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'reports_history'
+                },
+                () => {
+                    // Refresh the report list when a new one is added
+                    fetchReports();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     const filteredReports = reports.filter(report =>

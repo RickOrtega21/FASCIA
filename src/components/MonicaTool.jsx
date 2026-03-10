@@ -15,32 +15,66 @@ const MonicaTool = ({ area, searchTerm }) => {
 
     const [loading, setLoading] = useState(true);
 
-    // Load data ONLY ONCE on mount for this specific area instance
+    // Load data AND subscribe to realtime updates
     useEffect(() => {
+        const areaKey = `monica_${area}`;
+        
         const loadInstanceData = async () => {
             try {
                 const { data } = await supabase
                     .from('evaluations_state')
                     .select('data')
-                    .eq('area_name', `monica_${area}`)
+                    .eq('area_name', areaKey)
                     .single();
 
                 if (data?.data) {
                     setFormData(data.data);
                 } else {
-                    const saved = localStorage.getItem(`monica_${area}`);
+                    const saved = localStorage.getItem(areaKey);
                     if (saved) setFormData(JSON.parse(saved));
                 }
             } catch (err) {
                 console.error("Load error:", err);
-                const saved = localStorage.getItem(`monica_${area}`);
+                const saved = localStorage.getItem(areaKey);
                 if (saved) setFormData(JSON.parse(saved));
             } finally {
                 setLoading(false);
             }
         };
+
         loadInstanceData();
-    }, []); // Empty dependency = only on mount (remount happens via key change in App.jsx)
+
+        // Subscribe to Realtime changes for THIS area
+        const channel = supabase
+            .channel(`sync_${areaKey}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'evaluations_state',
+                    filter: `area_name=eq.${areaKey}`
+                },
+                (payload) => {
+                    if (payload.new && payload.new.data) {
+                        // Update state only if it's different to avoid loops
+                        // We use a functional update to get current state
+                        setFormData(current => {
+                            const remoteData = payload.new.data;
+                            if (JSON.stringify(current) !== JSON.stringify(remoteData)) {
+                                return remoteData;
+                            }
+                            return current;
+                        });
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [area]); // Re-subscribe if area changes
 
     // Auto-save logic
     useEffect(() => {

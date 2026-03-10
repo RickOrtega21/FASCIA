@@ -158,11 +158,29 @@ const ERITool = () => {
 
         loadSharedData();
 
-        // Listen for local updates or storage changes
+        // Subscribe to ANY update in evaluations_state to refresh the dashboard
+        const channel = supabase
+            .channel('eri_realtime_sync')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*', // Listen to INSERT, UPDATE, DELETE
+                    schema: 'public',
+                    table: 'evaluations_state'
+                },
+                () => {
+                    // Refresh all data when any area changes
+                    loadSharedData();
+                }
+            )
+            .subscribe();
+
+        // Listen for local updates (MonicaTool in same window)
         window.addEventListener('storage', loadSharedData);
         window.addEventListener('monicaDataUpdated', loadSharedData);
 
         return () => {
+            supabase.removeChannel(channel);
             window.removeEventListener('storage', loadSharedData);
             window.removeEventListener('monicaDataUpdated', loadSharedData);
         };
