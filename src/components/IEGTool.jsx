@@ -56,7 +56,7 @@ const getSmartObjective = (qText, componentName) => {
 const IEGTool = () => {
     const [dataState, setDataState] = useState({
         areasData: [],
-        globalTotals: { comp1: 0, comp2: 0, comp3: 0, comp4: 0, comp5: 0, calificacion: 0, noCount: 0 },
+        globalTotals: { comp1: 0, comp2: 0, comp3: 0, comp4: 0, comp5: 0, calificacion: 0, noCount: 0, pctCumplimiento: 0 },
         noAnalysis: [],
         approvedObjectives: {}
     });
@@ -64,107 +64,99 @@ const IEGTool = () => {
     const [manualInputs, setManualInputs] = useState({});
     const [period, setPeriod] = useState('Enero a Junio');
 
-    useEffect(() => {
-        const loadAllData = async () => {
-            const aggregatedAreas = [];
-            let gtComp1 = 0, gtComp2 = 0, gtComp3 = 0, gtComp4 = 0, gtComp5 = 0;
-            let gtNoCount = 0;
+    const loadAllData = async () => {
+        const aggregatedAreas = [];
+        let gtComp1 = 0, gtComp2 = 0, gtComp3 = 0, gtComp4 = 0, gtComp5 = 0;
+        let gtCalificacion = 0, gtNoCount = 0, gtPctCumplimiento = 0;
 
-            // To count "No" answers globally per question
-            const globalNoCounts = {};
+        const globalNoCounts = {};
 
-            // Fetch all DB states first
-            const { data: dbData } = await supabase.from('evaluations_state').select('*').catch(() => ({ data: null }));
-            const dbMap = {};
-            if (dbData) {
-                dbData.forEach(row => {
-                    if (row.area_name && row.area_name.startsWith('monica_')) {
-                        dbMap[row.area_name.replace('monica_', '')] = row.data;
-                    }
-                });
-            }
+        AREAS.forEach(area => {
+            const savedDataStr = localStorage.getItem(`monica_${area}`);
+            const savedData = savedDataStr ? JSON.parse(savedDataStr) : null;
+            const respuestas = savedData?.respuestas || {};
 
-            AREAS.forEach(area => {
-                let savedData = dbMap[area];
-                if (!savedData) {
-                    const savedDataStr = localStorage.getItem(`monica_${area}`);
-                    savedData = savedDataStr ? JSON.parse(savedDataStr) : null;
-                }
-                const respuestas = savedData?.respuestas || {};
+            let c1Raw = 0, c2Raw = 0, c3Raw = 0, c4Raw = 0, c5Raw = 0;
+            let areaNoCount = 0;
 
-                let c1Raw = 0, c2Raw = 0, c3Raw = 0, c4Raw = 0, c5Raw = 0;
-                let areaNoCount = 0;
-
-                questionsData.forEach(comp => {
-                    comp.questions.forEach(q => {
-                        const resp = respuestas[q.n];
-                        let pts = 0;
-                        if (resp === 'si') pts = 2.5;
-                        else if (resp === 'parcial') pts = 1.25;
-                        else if (resp === 'no') {
-                            areaNoCount++;
-                            globalNoCounts[q.n] = (globalNoCounts[q.n] || 0) + 1;
-                        }
-
-                        if (comp.id === 1) c1Raw += pts;
-                        if (comp.id === 2) c2Raw += pts;
-                        if (comp.id === 3) c3Raw += pts;
-                        if (comp.id === 4) c4Raw += pts;
-                        if (comp.id === 5) c5Raw += pts;
-                    });
-                });
-
-                const comp1 = Math.round(c1Raw * multipliers[1]);
-                const comp2 = Math.round(c2Raw * multipliers[2]);
-                const comp3 = Math.round(c3Raw * multipliers[3]);
-                const comp4 = Math.round(c4Raw * multipliers[4]);
-                const comp5 = Math.round(c5Raw * multipliers[5]);
-                const calificacion = comp1 + comp2 + comp3 + comp4 + comp5;
-
-                aggregatedAreas.push({ area, calificacion });
-
-                gtComp1 += comp1; gtComp2 += comp2; gtComp3 += comp3; gtComp4 += comp4; gtComp5 += comp5;
-                gtNoCount += areaNoCount;
-            });
-
-            const numAreas = AREAS.length;
-            const globalTotals = {
-                comp1: Math.round(gtComp1 / numAreas),
-                comp2: Math.round(gtComp2 / numAreas),
-                comp3: Math.round(gtComp3 / numAreas),
-                comp4: Math.round(gtComp4 / numAreas),
-                comp5: Math.round(gtComp5 / numAreas),
-                calificacion: Math.round((gtComp1 + gtComp2 + gtComp3 + gtComp4 + gtComp5) / numAreas),
-                noCount: gtNoCount
-            };
-
-            // Prepare Analysis Table (only questions with at least one "No")
-            const analysis = [];
             questionsData.forEach(comp => {
                 comp.questions.forEach(q => {
-                    if (globalNoCounts[q.n]) {
-                        analysis.push({
-                            n: q.n,
-                            text: q.text,
-                            component: comp.component,
-                            noCount: globalNoCounts[q.n],
-                            smart: getSmartObjective(q.text, comp.component)
-                        });
+                    const resp = respuestas[q.n];
+                    let pts = 0;
+                    if (resp === 'si') pts = 2.5;
+                    else if (resp === 'parcial') pts = 1.25;
+                    else if (resp === 'no') {
+                        areaNoCount++;
+                        globalNoCounts[q.n] = (globalNoCounts[q.n] || 0) + 1;
                     }
+
+                    if (comp.id === 1) c1Raw += pts;
+                    if (comp.id === 2) c2Raw += pts;
+                    if (comp.id === 3) c3Raw += pts;
+                    if (comp.id === 4) c4Raw += pts;
+                    if (comp.id === 5) c5Raw += pts;
                 });
             });
 
-            setDataState(prev => ({
-                ...prev,
-                areasData: aggregatedAreas,
-                globalTotals,
-                noAnalysis: analysis
-            }));
+            const comp1 = Math.round(c1Raw * multipliers[1]);
+            const comp2 = Math.round(c2Raw * multipliers[2]);
+            const comp3 = Math.round(c3Raw * multipliers[3]);
+            const comp4 = Math.round(c4Raw * multipliers[4]);
+            const comp5 = Math.round(c5Raw * multipliers[5]);
+            const calificacion = comp1 + comp2 + comp3 + comp4 + comp5;
+            const pctCumplimiento = Math.round((1 - (areaNoCount / 40)) * 100);
+
+            aggregatedAreas.push({ area, calificacion, noCount: areaNoCount, pctCumplimiento });
+
+            gtComp1 += comp1; gtComp2 += comp2; gtComp3 += comp3; gtComp4 += comp4; gtComp5 += comp5;
+            gtCalificacion += calificacion;
+            gtNoCount += areaNoCount;
+            gtPctCumplimiento += pctCumplimiento;
+        });
+
+        const numAreas = AREAS.length;
+        const globalTotals = {
+            comp1: Math.round(gtComp1 / numAreas),
+            comp2: Math.round(gtComp2 / numAreas),
+            comp3: Math.round(gtComp3 / numAreas),
+            comp4: Math.round(gtComp4 / numAreas),
+            comp5: Math.round(gtComp5 / numAreas),
+            calificacion: Math.round(gtCalificacion / numAreas),
+            noCount: gtNoCount,
+            pctCumplimiento: Math.round(gtPctCumplimiento / numAreas)
         };
 
+        const analysis = [];
+        questionsData.forEach(comp => {
+            comp.questions.forEach(q => {
+                if (globalNoCounts[q.n]) {
+                    analysis.push({
+                        n: q.n,
+                        text: q.text,
+                        component: comp.component,
+                        noCount: globalNoCounts[q.n],
+                        smart: getSmartObjective(q.text, comp.component)
+                    });
+                }
+            });
+        });
+
+        setDataState(prev => ({
+            ...prev,
+            areasData: aggregatedAreas,
+            globalTotals,
+            noAnalysis: analysis
+        }));
+    };
+
+    useEffect(() => {
         loadAllData();
         window.addEventListener('storage', loadAllData);
-        return () => window.removeEventListener('storage', loadAllData);
+        window.addEventListener('monicaDataUpdated', loadAllData);
+        return () => {
+            window.removeEventListener('storage', loadAllData);
+            window.removeEventListener('monicaDataUpdated', loadAllData);
+        };
     }, []);
 
     const chartData = [
@@ -191,6 +183,9 @@ const IEGTool = () => {
 
     const today = new Date();
     const formattedDate = `${today.getDate()} de ${today.toLocaleString('es-ES', { month: 'long' })} de ${today.getFullYear()}`;
+
+    // Filtered areas for the report table (Excluding Auditoria)
+    const filteredAreas = dataState.areasData.filter(d => d.area !== 'Auditoria');
 
     return (
         <div className="ieg-container">
@@ -220,7 +215,7 @@ const IEGTool = () => {
                         El objetivo del documento es informar al Director General sobre la operación y el estado actual del Sistema de Contraloría Interna en La Latinoamericana Seguros, S. A. (La Institución) en cumplimiento con la Circular Única de Seguros y Fianzas (CUSF) en su Título 3, capítulo 3.3, disposición 3.3.4. Informando el nivel de cumplimiento de los principios y componentes del SCI y las acciones a tomar para la mejora continua de las operaciones de la Institución con base en los Mecanismos Operacionales del Nivel de Control en las Áreas.
                     </p>
                     <p className="ieg-paragraph">
-                        En este periodo el desempeño de las actividades refleja que el cumplimiento a las políticas y procedimientos registrados consta del <strong>{Math.round(100 - (dataState.globalTotals.noCount / (AREAS.length * 40)) * 100)}%</strong>, dado a que se encontraron una cantidad de <strong>{dataState.globalTotals.noCount}</strong> de deficiencias en las actividades de todas las áreas durante el periodo de evaluación, así mismo la tasa de mejora en el sistema para este semestre es de <strong>100%</strong> como resultado de un seguimiento trimestral.
+                        En este periodo el desempeño de las actividades refleja que el cumplimiento a las políticas y procedimientos registrados consta del <strong>{dataState.globalTotals.pctCumplimiento}%</strong>, dado a que se encontraron una cantidad de <strong>{dataState.globalTotals.noCount}</strong> de deficiencias en las actividades de todas las áreas durante el periodo de evaluación, así mismo la tasa de mejora en el sistema para este semestre es de <strong>100%</strong> como resultado de un seguimiento trimestral.
                     </p>
                     <p className="ieg-paragraph">
                         Por lo anterior, la eficiencia del Sistema de Contraloría Interna obtiene una calificación de <strong>{dataState.globalTotals.calificacion}</strong> puntos de 100 en el cumplimiento de sus principios y componentes a nivel institucional representados en la siguiente tabla.
@@ -248,9 +243,8 @@ const IEGTool = () => {
                         </table>
                     </div>
 
-                    {/* Section for Area Summary */}
                     <p className="ieg-paragraph" style={{ marginTop: '2rem' }}>
-                        La eficiencia del Sistema de Contraloría Interna obtiene una calificación para las áreas entre los rangos de <strong>{dataState.areasData.length > 0 ? Math.min(...dataState.areasData.map(d => d.calificacion)) : 0} a {dataState.areasData.length > 0 ? Math.max(...dataState.areasData.map(d => d.calificacion)) : 0}</strong> puntos de 100 en el cumplimiento de sus principios y componentes a nivel gerencial representados en la siguiente tabla.
+                        La eficiencia del Sistema de Contraloría Interna obtiene una calificación para las áreas entre los rangos de <strong>{filteredAreas.length > 0 ? Math.min(...filteredAreas.map(d => d.calificacion)) : 0} a {filteredAreas.length > 0 ? Math.max(...filteredAreas.map(d => d.calificacion)) : 0}</strong> puntos de 100 en el cumplimiento de sus principios y componentes a nivel gerencial representados en la siguiente tabla.
                     </p>
 
                     <div style={{ width: '40%', margin: '0 auto' }}>
@@ -262,7 +256,7 @@ const IEGTool = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {dataState.areasData.map((d, i) => (
+                                {filteredAreas.map((d, i) => (
                                     <tr key={i}>
                                         <td className="row-header" style={{ fontSize: '0.75rem' }}>{d.area}</td>
                                         <td style={{ textAlign: 'center' }}>{d.calificacion}</td>
@@ -318,7 +312,6 @@ const IEGTool = () => {
                         <h2 className="ieg-analysis-title">Objetivos</h2>
                         <div className="approved-actions-list">
                             {Object.entries(dataState.approvedObjectives).filter(([_, approved]) => approved).length > 0 ? (
-                                // Group approved objectives by component
                                 Object.entries(
                                     dataState.noAnalysis
                                         .filter(item => dataState.approvedObjectives[item.n])
@@ -372,21 +365,38 @@ const IEGTool = () => {
                                                 className="ieg-objective-input"
                                                 rows="4"
                                                 placeholder={item.smart}
-                                                value={manualInputs[item.n] || ''}
+                                                value={manualInputs[item.n] !== undefined ? manualInputs[item.n] : item.smart}
                                                 onChange={(e) => handleManualChange(item.n, e.target.value)}
-                                                style={{ border: '1px solid #002060', backgroundColor: '#f9f9ff' }}
+                                                style={{ border: '1px solid #002060', backgroundColor: '#f9f9ff', width: '100%', padding: '8px', fontSize: '0.85rem' }}
                                             />
                                         </td>
                                         <td style={{ textAlign: 'center' }}>
                                             <button
                                                 className={`ieg-btn-approve ${dataState.approvedObjectives[item.n] ? 'approved' : ''}`}
                                                 onClick={() => toggleApprove(item.n)}
+                                                style={{
+                                                    padding: '8px 16px',
+                                                    borderRadius: '4px',
+                                                    border: 'none',
+                                                    cursor: 'pointer',
+                                                    backgroundColor: dataState.approvedObjectives[item.n] ? '#4caf50' : '#002060',
+                                                    color: 'white',
+                                                    fontWeight: 'bold',
+                                                    transition: 'all 0.3s ease'
+                                                }}
                                             >
                                                 {dataState.approvedObjectives[item.n] ? '✓ Aprobado' : 'Aprobar'}
                                             </button>
                                         </td>
                                     </tr>
                                 ))}
+                                {dataState.noAnalysis.length === 0 && (
+                                    <tr>
+                                        <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', fontStyle: 'italic', color: '#999' }}>
+                                            No se detectaron deficiencias recurrentes en las evaluaciones actuales.
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -407,51 +417,41 @@ const IEGTool = () => {
                             alert("Generando PDF y preparando correo. Esto puede tardar unos segundos...");
                             const element = document.querySelector('.ieg-report');
                             const opt = {
-                                margin: 1,
-                                filename: 'evaluacion_sci_semestre_1-26.pdf',
+                                margin: 0.5,
+                                filename: `evaluacion_sci_${today.getFullYear()}.pdf`,
                                 image: { type: 'jpeg', quality: 0.98 },
                                 html2canvas: { scale: 2, useCORS: true },
                                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
                             };
 
-                            // Generate PDF as base64 string
                             const pdfBase64 = await html2pdf().from(element).set(opt).output('datauristring');
 
-                            // Save to historical reports repository in DB
                             const historyData = {
                                 title: `Reporte Institucional IEG - ${period} ${today.getFullYear()}`,
-                                evaluator_name: 'IEG System',
+                                evaluator_name: 'Sistema Automático IEG',
                                 period: period,
                                 score: dataState.globalTotals.calificacion,
                                 report_data: dataState.globalTotals
                             };
                             await supabase.from('reports_history').insert([historyData]).catch(console.error);
 
-                            // Send to our backend
                             const response = await fetch('http://localhost:3001/api/send-email', {
                                 method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
+                                headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
                                     to: 'ricardoortega341@gmail.com, rgalicia@latinoseguros.com.mx',
-                                    subject: 'evaluación SCI semestre 1-26',
-                                    message: 'subir el archivo en PDF',
+                                    subject: `Evaluación SCI Semestre ${period === 'Enero a Junio' ? '1' : '2'} - ${today.getFullYear()}`,
+                                    message: 'Adjunto el informe de evaluación general generado por el sistema FASCIA.',
                                     pdfBase64: pdfBase64,
-                                    filename: 'evaluacion_sci_semestre_1-26.pdf'
+                                    filename: `evaluacion_sci_${period.replace(/ /g, '_')}_${today.getFullYear()}.pdf`
                                 })
                             });
 
-                            if (response.ok) {
-                                alert("Informe enviado con éxito a los correos configurados.");
-                            } else {
-                                const err = await response.json();
-                                console.error("Error del servidor:", err);
-                                alert("Hubo un error al enviar el correo desde el servidor.");
-                            }
+                            if (response.ok) alert("Informe enviado con éxito.");
+                            else alert("Hubo un error al enviar el correo.");
                         } catch (e) {
-                            console.error("Error generating or sending PDF:", e);
-                            alert("Ocurrió un error inesperado al procesar el documento.");
+                            console.error(e);
+                            alert("Error al procesar el documento.");
                         }
                     }}>
                         <span style={{ marginRight: '8px' }}>📧</span> Exportar en PDF y Enviarlo por Correo
