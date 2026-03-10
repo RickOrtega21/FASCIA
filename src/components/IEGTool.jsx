@@ -278,7 +278,7 @@ const IEGTool = () => {
                                 <ResponsiveContainer width="100%" height={250}>
                                     <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                        <XAxis dataKey="subject" tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                                        <XAxis dataKey="subject" interval={0} tick={{ fontSize: 9, fontWeight: 'bold' }} />
                                         <YAxis domain={[0, 20]} tickCount={11} tick={{ fontSize: 10 }} />
                                         <RechartsTooltip />
                                         <ReferenceLine y={8} stroke="#ff0000" strokeWidth={1.5} />
@@ -298,7 +298,7 @@ const IEGTool = () => {
                                 <ResponsiveContainer width="100%" height={250}>
                                     <RadarChart cx="50%" cy="50%" outerRadius="70%" data={chartData}>
                                         <PolarGrid gridType="polygon" />
-                                        <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                                        <PolarAngleAxis dataKey="subject" tick={{ fontSize: 9, fontWeight: 'bold' }} />
                                         <PolarRadiusAxis angle={90} tick={{ fontSize: 10 }} />
                                         <Radar name="Institucional" dataKey="A" stroke="#0088fe" strokeWidth={3} fill="#0088fe" fillOpacity={0.1} />
                                         <RechartsTooltip />
