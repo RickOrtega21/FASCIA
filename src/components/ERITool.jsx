@@ -43,109 +43,128 @@ const ERITool = () => {
         comp1: 0, comp2: 0, comp3: 0, comp4: 0, comp5: 0,
         calificacion: 0, noCount: 0, pctCumplimiento: 0
     });
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const loadData = () => {
-            const aggregatedData = [];
-            let gtComp1 = 0, gtComp2 = 0, gtComp3 = 0, gtComp4 = 0, gtComp5 = 0;
-            let gtCalificacion = 0, gtNoCount = 0, gtPctCumplimiento = 0;
+        const loadSharedData = async () => {
+            setLoading(true);
+            try {
+                // Fetch all evaluation states from Supabase
+                const { data: supabaseData, error } = await supabase
+                    .from('evaluations_state')
+                    .select('area_name, data');
 
-            AREAS.forEach(area => {
-                const savedDataStr = localStorage.getItem(`monica_${area}`);
-                const savedData = savedDataStr ? JSON.parse(savedDataStr) : null;
-                const respuestas = savedData ? savedData.respuestas : {};
+                if (error) throw error;
 
-                // Read quarterly ratings saved by MonicaTool
-                const califActual = parseFloat(savedData?.califActual) || 0;
-                const califAnterior = parseFloat(savedData?.califAnterior) || 0;
-
-                let comp1Raw = 0, comp2Raw = 0, comp3Raw = 0, comp4Raw = 0, comp5Raw = 0;
-                let noCount = 0;
-
-                questionsData.forEach(comp => {
-                    comp.questions.forEach(q => {
-                        const resp = respuestas[q.n];
-                        let pts = 0;
-                        if (resp === 'si') pts = 2.5;
-                        else if (resp === 'parcial') pts = 1.25;
-                        else if (resp === 'no') noCount++;
-
-                        if (comp.id === 1) comp1Raw += pts;
-                        if (comp.id === 2) comp2Raw += pts;
-                        if (comp.id === 3) comp3Raw += pts;
-                        if (comp.id === 4) comp4Raw += pts;
-                        if (comp.id === 5) comp5Raw += pts;
-                    });
+                // Create a map for quick lookup
+                const remoteDataMap = {};
+                supabaseData.forEach(item => {
+                    remoteDataMap[item.area_name] = item.data;
                 });
 
-                const comp1 = Math.round(comp1Raw * multipliers[1]);
-                const comp2 = Math.round(comp2Raw * multipliers[2]);
-                const comp3 = Math.round(comp3Raw * multipliers[3]);
-                const comp4 = Math.round(comp4Raw * multipliers[4]);
-                const comp5 = Math.round(comp5Raw * multipliers[5]);
+                const aggregatedData = [];
+                let gtComp1 = 0, gtComp2 = 0, gtComp3 = 0, gtComp4 = 0, gtComp5 = 0;
+                let gtCalificacion = 0, gtNoCount = 0, gtPctCumplimiento = 0;
 
-                const calificacion = comp1 + comp2 + comp3 + comp4 + comp5;
-
-                // Formula: (1 - (total_No / 40)) * 100
-                const pctCumplimiento = Math.round((1 - (noCount / 40)) * 100);
-
-                // % Mejora: compare actual vs anterior
-                let pctMejora = '—';
-                const actual = parseFloat(califActual) || 0;
-                const anterior = parseFloat(califAnterior) || 0;
-
-                if (actual > 0 && anterior > 0) {
-                    if (actual === anterior) {
-                        pctMejora = '0%';
-                    } else {
-                        const growth = Math.round(((actual - anterior) / anterior) * 100);
-                        pctMejora = (growth > 0 ? '+' : '') + growth + '%';
+                AREAS.forEach(area => {
+                    const areaKey = `monica_${area}`;
+                    // Prefer Supabase data over localStorage
+                    let savedData = remoteDataMap[areaKey];
+                    
+                    if (!savedData) {
+                        const localStr = localStorage.getItem(areaKey);
+                        if (localStr) savedData = JSON.parse(localStr);
                     }
-                } else if (actual > 0 && anterior === 0) {
-                    pctMejora = '100%';
-                } else if (actual === 0 && anterior > 0) {
-                    pctMejora = '-100%';
-                }
 
-                aggregatedData.push({
-                    area,
-                    comp1, comp2, comp3, comp4, comp5,
-                    calificacion, noCount, pctCumplimiento, pctMejora
+                    const respuestas = savedData ? savedData.respuestas : {};
+                    const califActual = parseFloat(savedData?.califActual) || 0;
+                    const califAnterior = parseFloat(savedData?.califAnterior) || 0;
+
+                    let comp1Raw = 0, comp2Raw = 0, comp3Raw = 0, comp4Raw = 0, comp5Raw = 0;
+                    let noCount = 0;
+
+                    questionsData.forEach(comp => {
+                        comp.questions.forEach(q => {
+                            const resp = respuestas[q.n];
+                            let pts = 0;
+                            if (resp === 'si') pts = 2.5;
+                            else if (resp === 'parcial') pts = 1.25;
+                            else if (resp === 'no') noCount++;
+
+                            if (comp.id === 1) comp1Raw += pts;
+                            if (comp.id === 2) comp2Raw += pts;
+                            if (comp.id === 3) comp3Raw += pts;
+                            if (comp.id === 4) comp4Raw += pts;
+                            if (comp.id === 5) comp5Raw += pts;
+                        });
+                    });
+
+                    const comp1 = Math.round(comp1Raw * multipliers[1]);
+                    const comp2 = Math.round(comp2Raw * multipliers[2]);
+                    const comp3 = Math.round(comp3Raw * multipliers[3]);
+                    const comp4 = Math.round(comp4Raw * multipliers[4]);
+                    const comp5 = Math.round(comp5Raw * multipliers[5]);
+
+                    const calificacion = comp1 + comp2 + comp3 + comp4 + comp5;
+                    const pctCumplimiento = Math.round((1 - (noCount / 40)) * 100);
+
+                    let pctMejora = '—';
+                    const actual = parseFloat(califActual) || 0;
+                    const anterior = parseFloat(califAnterior) || 0;
+
+                    if (actual > 0 && anterior > 0) {
+                        if (actual === anterior) {
+                            pctMejora = '0%';
+                        } else {
+                            const growth = Math.round(((actual - anterior) / anterior) * 100);
+                            pctMejora = (growth > 0 ? '+' : '') + growth + '%';
+                        }
+                    } else if (actual > 0 && anterior === 0) {
+                        pctMejora = '100%';
+                    } else if (actual === 0 && anterior > 0) {
+                        pctMejora = '-100%';
+                    }
+
+                    aggregatedData.push({
+                        area,
+                        comp1, comp2, comp3, comp4, comp5,
+                        calificacion, noCount, pctCumplimiento, pctMejora
+                    });
+
+                    gtComp1 += comp1; gtComp2 += comp2; gtComp3 += comp3; gtComp4 += comp4; gtComp5 += comp5;
+                    gtCalificacion += calificacion;
+                    gtNoCount += noCount;
+                    gtPctCumplimiento += pctCumplimiento;
                 });
 
-                gtComp1 += comp1;
-                gtComp2 += comp2;
-                gtComp3 += comp3;
-                gtComp4 += comp4;
-                gtComp5 += comp5;
-                gtCalificacion += calificacion;
-                gtNoCount += noCount;
-                gtPctCumplimiento += pctCumplimiento;
-            });
-
-            const numAreas = AREAS.length;
-
-            setAreasData(aggregatedData);
-            setGlobalTotals({
-                comp1: Math.round(gtComp1 / numAreas),
-                comp2: Math.round(gtComp2 / numAreas),
-                comp3: Math.round(gtComp3 / numAreas),
-                comp4: Math.round(gtComp4 / numAreas),
-                comp5: Math.round(gtComp5 / numAreas),
-                calificacion: Math.round(gtCalificacion / numAreas),
-                noCount: gtNoCount, // Suma total de No
-                pctCumplimiento: Math.round(gtPctCumplimiento / numAreas) // Promedio de porcentajes
-            });
+                const numAreas = AREAS.length;
+                setAreasData(aggregatedData);
+                setGlobalTotals({
+                    comp1: Math.round(gtComp1 / numAreas),
+                    comp2: Math.round(gtComp2 / numAreas),
+                    comp3: Math.round(gtComp3 / numAreas),
+                    comp4: Math.round(gtComp4 / numAreas),
+                    comp5: Math.round(gtComp5 / numAreas),
+                    calificacion: Math.round(gtCalificacion / numAreas),
+                    noCount: gtNoCount,
+                    pctCumplimiento: Math.round(gtPctCumplimiento / numAreas)
+                });
+            } catch (err) {
+                console.error("Error loading shared data:", err);
+            } finally {
+                setLoading(false);
+            }
         };
 
-        loadData();
+        loadSharedData();
 
-        window.addEventListener('storage', loadData);
-        window.addEventListener('monicaDataUpdated', loadData);
+        // Listen for local updates or storage changes
+        window.addEventListener('storage', loadSharedData);
+        window.addEventListener('monicaDataUpdated', loadSharedData);
 
         return () => {
-            window.removeEventListener('storage', loadData);
-            window.removeEventListener('monicaDataUpdated', loadData);
+            window.removeEventListener('storage', loadSharedData);
+            window.removeEventListener('monicaDataUpdated', loadSharedData);
         };
     }, []);
 
@@ -156,6 +175,15 @@ const ERITool = () => {
         { subject: 'Infor y Comu', A: globalTotals.comp4, fullMark: 20 },
         { subject: 'Superv y Seg', A: globalTotals.comp5, fullMark: 20 },
     ];
+
+    if (loading) {
+        return (
+            <div className="eri-container loading-state">
+                <div className="loader"></div>
+                <p>Cargando datos institucionales...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="eri-container">

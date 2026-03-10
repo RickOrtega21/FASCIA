@@ -60,113 +60,139 @@ const IEGTool = () => {
         noAnalysis: [],
         approvedObjectives: {}
     });
+    const [loading, setLoading] = useState(true);
 
     const [manualInputs, setManualInputs] = useState({});
     const [period, setPeriod] = useState('Enero a Junio');
 
     const loadAllData = async () => {
-        const aggregatedAreas = [];
-        let gtComp1 = 0, gtComp2 = 0, gtComp3 = 0, gtComp4 = 0, gtComp5 = 0;
-        let gtCalificacion = 0, gtNoCount = 0, gtPctCumplimiento = 0;
-        let gtCalificacionAnterior = 0;
+        setLoading(true);
+        try {
+            // Fetch all evaluation states from Supabase
+            const { data: supabaseData, error } = await supabase
+                .from('evaluations_state')
+                .select('area_name, data');
 
-        const globalNoCounts = {};
+            if (error) throw error;
 
-        AREAS.forEach(area => {
-            const savedDataStr = localStorage.getItem(`monica_${area}`);
-            const savedData = savedDataStr ? JSON.parse(savedDataStr) : null;
-            const respuestas = savedData?.respuestas || {};
-            const califAnterior = parseFloat(savedData?.califAnterior) || 0;
+            const remoteDataMap = {};
+            supabaseData.forEach(item => {
+                remoteDataMap[item.area_name] = item.data;
+            });
 
-            let c1Raw = 0, c2Raw = 0, c3Raw = 0, c4Raw = 0, c5Raw = 0;
-            let areaNoCount = 0;
+            const aggregatedAreas = [];
+            let gtComp1 = 0, gtComp2 = 0, gtComp3 = 0, gtComp4 = 0, gtComp5 = 0;
+            let gtCalificacion = 0, gtNoCount = 0, gtPctCumplimiento = 0;
+            let gtCalificacionAnterior = 0;
 
+            const globalNoCounts = {};
+
+            AREAS.forEach(area => {
+                const areaKey = `monica_${area}`;
+                let savedData = remoteDataMap[areaKey];
+                
+                if (!savedData) {
+                    const localStr = localStorage.getItem(areaKey);
+                    if (localStr) savedData = JSON.parse(localStr);
+                }
+
+                const respuestas = savedData?.respuestas || {};
+                const califAnterior = parseFloat(savedData?.califAnterior) || 0;
+
+                let c1Raw = 0, c2Raw = 0, c3Raw = 0, c4Raw = 0, c5Raw = 0;
+                let areaNoCount = 0;
+
+                questionsData.forEach(comp => {
+                    comp.questions.forEach(q => {
+                        const resp = respuestas[q.n];
+                        let pts = 0;
+                        if (resp === 'si') pts = 2.5;
+                        else if (resp === 'parcial') pts = 1.25;
+                        else if (resp === 'no') {
+                            areaNoCount++;
+                            globalNoCounts[q.n] = (globalNoCounts[q.n] || 0) + 1;
+                        }
+
+                        if (comp.id === 1) c1Raw += pts;
+                        if (comp.id === 2) c2Raw += pts;
+                        if (comp.id === 3) c3Raw += pts;
+                        if (comp.id === 4) c4Raw += pts;
+                        if (comp.id === 5) c5Raw += pts;
+                    });
+                });
+
+                const comp1 = Math.round(c1Raw * multipliers[1]);
+                const comp2 = Math.round(c2Raw * multipliers[2]);
+                const comp3 = Math.round(c3Raw * multipliers[3]);
+                const comp4 = Math.round(c4Raw * multipliers[4]);
+                const comp5 = Math.round(c5Raw * multipliers[5]);
+
+                const calificacion = comp1 + comp2 + comp3 + comp4 + comp5;
+                const pctCumplimiento = Math.round((1 - (areaNoCount / 40)) * 100);
+
+                aggregatedAreas.push({ area, calificacion, noCount: areaNoCount, pctCumplimiento });
+
+                gtComp1 += comp1; gtComp2 += comp2; gtComp3 += comp3; gtComp4 += comp4; gtComp5 += comp5;
+                gtCalificacion += calificacion;
+                gtCalificacionAnterior += califAnterior;
+                gtNoCount += areaNoCount;
+                gtPctCumplimiento += pctCumplimiento;
+            });
+
+            const numAreas = AREAS.length;
+            const instActual = Math.round(gtCalificacion / numAreas);
+            const instAnterior = Math.round(gtCalificacionAnterior / numAreas);
+
+            let institutionalMejora = '0%';
+            if (instActual > 0 && instAnterior > 0) {
+                if (instActual === instAnterior) institutionalMejora = '0%';
+                else {
+                    const growth = Math.round(((instActual - instAnterior) / instAnterior) * 100);
+                    institutionalMejora = (growth > 0 ? '+' : '') + growth + '%';
+                }
+            } else if (instActual > 0 && instAnterior === 0) {
+                institutionalMejora = '100%';
+            } else if (instActual === 0 && instAnterior > 0) {
+                institutionalMejora = '-100%';
+            }
+            
+            const globalTotals = {
+                comp1: Math.round(gtComp1 / numAreas),
+                comp2: Math.round(gtComp2 / numAreas),
+                comp3: Math.round(gtComp3 / numAreas),
+                comp4: Math.round(gtComp4 / numAreas),
+                comp5: Math.round(gtComp5 / numAreas),
+                calificacion: instActual,
+                noCount: gtNoCount,
+                pctCumplimiento: Math.round(gtPctCumplimiento / numAreas)
+            };
+
+            const analysis = [];
             questionsData.forEach(comp => {
                 comp.questions.forEach(q => {
-                    const resp = respuestas[q.n];
-                    let pts = 0;
-                    if (resp === 'si') pts = 2.5;
-                    else if (resp === 'parcial') pts = 1.25;
-                    else if (resp === 'no') {
-                        areaNoCount++;
-                        globalNoCounts[q.n] = (globalNoCounts[q.n] || 0) + 1;
+                    if (globalNoCounts[q.n]) {
+                        analysis.push({
+                            n: q.n,
+                            text: q.text,
+                            component: comp.component,
+                            noCount: globalNoCounts[q.n],
+                            smart: getSmartObjective(q.text, comp.component)
+                        });
                     }
-
-                    if (comp.id === 1) c1Raw += pts;
-                    if (comp.id === 2) c2Raw += pts;
-                    if (comp.id === 3) c3Raw += pts;
-                    if (comp.id === 4) c4Raw += pts;
-                    if (comp.id === 5) c5Raw += pts;
                 });
             });
 
-            const comp1 = Math.round(c1Raw * multipliers[1]);
-            const comp2 = Math.round(c2Raw * multipliers[2]);
-            const comp3 = Math.round(c3Raw * multipliers[3]);
-            const comp4 = Math.round(c4Raw * multipliers[4]);
-            const comp5 = Math.round(c5Raw * multipliers[5]);
-            const calificacion = comp1 + comp2 + comp3 + comp4 + comp5;
-            const pctCumplimiento = Math.round((1 - (areaNoCount / 40)) * 100);
-
-            aggregatedAreas.push({ area, calificacion, noCount: areaNoCount, pctCumplimiento });
-
-            gtComp1 += comp1; gtComp2 += comp2; gtComp3 += comp3; gtComp4 += comp4; gtComp5 += comp5;
-            gtCalificacion += calificacion;
-            gtCalificacionAnterior += califAnterior;
-            gtNoCount += areaNoCount;
-            gtPctCumplimiento += pctCumplimiento;
-        });
-
-        const numAreas = AREAS.length;
-        const instActual = Math.round(gtCalificacion / numAreas);
-        const instAnterior = Math.round(gtCalificacionAnterior / numAreas);
-
-        let institutionalMejora = '0%';
-        if (instActual > 0 && instAnterior > 0) {
-            if (instActual === instAnterior) institutionalMejora = '0%';
-            else {
-                const growth = Math.round(((instActual - instAnterior) / instAnterior) * 100);
-                institutionalMejora = (growth > 0 ? '+' : '') + growth + '%';
-            }
-        } else if (instActual > 0 && instAnterior === 0) {
-            institutionalMejora = '100%';
-        } else if (instActual === 0 && instAnterior > 0) {
-            institutionalMejora = '-100%';
-        }
-        
-        const globalTotals = {
-            comp1: Math.round(gtComp1 / numAreas),
-            comp2: Math.round(gtComp2 / numAreas),
-            comp3: Math.round(gtComp3 / numAreas),
-            comp4: Math.round(gtComp4 / numAreas),
-            comp5: Math.round(gtComp5 / numAreas),
-            calificacion: Math.round(gtCalificacion / numAreas),
-            noCount: gtNoCount,
-            pctCumplimiento: Math.round(gtPctCumplimiento / numAreas)
-        };
-
-        const analysis = [];
-        questionsData.forEach(comp => {
-            comp.questions.forEach(q => {
-                if (globalNoCounts[q.n]) {
-                    analysis.push({
-                        n: q.n,
-                        text: q.text,
-                        component: comp.component,
-                        noCount: globalNoCounts[q.n],
-                        smart: getSmartObjective(q.text, comp.component)
-                    });
-                }
+            setDataState({
+                areasData: aggregatedAreas,
+                globalTotals,
+                noAnalysis: analysis,
+                approvedObjectives: {}
             });
-        });
-
-        setDataState(prev => ({
-            ...prev,
-            areasData: aggregatedAreas,
-            globalTotals,
-            noAnalysis: analysis,
-            institutionalMejora
-        }));
+        } catch (err) {
+            console.error("IEG Load Error:", err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -179,13 +205,23 @@ const IEGTool = () => {
         };
     }, []);
 
-    const chartData = [
+    const chartData = useMemo(() => [
         { subject: 'Ambi Control', A: dataState.globalTotals.comp1, fullMark: 20 },
         { subject: 'Admi Riesgo', A: dataState.globalTotals.comp2, fullMark: 20 },
         { subject: 'Actv Control', A: dataState.globalTotals.comp3, fullMark: 20 },
         { subject: 'Infor y Comu', A: dataState.globalTotals.comp4, fullMark: 20 },
         { subject: 'Superv y Seg', A: dataState.globalTotals.comp5, fullMark: 20 },
-    ];
+    ], [dataState.globalTotals]);
+
+    if (loading) {
+        return (
+            <div className="ieg-container loading-state">
+                <div className="loader"></div>
+                <p>Generando Informes Ejecutivos...</p>
+            </div>
+        );
+    }
+
 
     const toggleApprove = (n) => {
         setDataState(prev => ({
