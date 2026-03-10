@@ -9,7 +9,7 @@ const AREAS = [
     'Operaciones', 'Sistemas', 'Recursos Humanos', 'Comercial',
     'PMO y Calidad', 'Juridico', 'Finanzas', 'Suscripción Daños',
     'Indemnización Daños', 'Suscripción Personas', 'Reaseguro',
-    'Indemnización Personas', 'Gobierno Corporativo'
+    'Indemnización Personas', 'Gobierno Corporativo', 'Auditoria'
 ];
 
 const multipliers = {
@@ -55,7 +55,9 @@ const ERITool = () => {
                     .from('evaluations_state')
                     .select('area_name, data');
 
-                if (error) throw error;
+                if (error) {
+                    console.warn("Supabase fetch error, falling back to local data:", error);
+                }
 
                 // Create a map for quick lookup
                 const remoteDataMap = {};
@@ -132,23 +134,22 @@ const ERITool = () => {
                         calificacion, noCount, pctCumplimiento, pctMejora
                     });
 
-                    gtComp1 += comp1; gtComp2 += comp2; gtComp3 += comp3; gtComp4 += comp4; gtComp5 += comp5;
                     gtCalificacion += calificacion;
                     gtNoCount += noCount;
                     gtPctCumplimiento += pctCumplimiento;
                 });
 
-                const numAreas = AREAS.length;
+                const filteredAreasCount = AREAS.filter(a => a !== 'Auditoria').length;
                 setAreasData(aggregatedData);
                 setGlobalTotals({
-                    comp1: Math.round(gtComp1 / numAreas),
-                    comp2: Math.round(gtComp2 / numAreas),
-                    comp3: Math.round(gtComp3 / numAreas),
-                    comp4: Math.round(gtComp4 / numAreas),
-                    comp5: Math.round(gtComp5 / numAreas),
-                    calificacion: Math.round(gtCalificacion / numAreas),
+                    comp1: Math.round(gtComp1 / filteredAreasCount),
+                    comp2: Math.round(gtComp2 / filteredAreasCount),
+                    comp3: Math.round(gtComp3 / filteredAreasCount),
+                    comp4: Math.round(gtComp4 / filteredAreasCount),
+                    comp5: Math.round(gtComp5 / filteredAreasCount),
+                    calificacion: Math.round(gtCalificacion / filteredAreasCount),
                     noCount: gtNoCount,
-                    pctCumplimiento: Math.round(gtPctCumplimiento / numAreas)
+                    pctCumplimiento: Math.round(gtPctCumplimiento / filteredAreasCount)
                 });
             } catch (err) {
                 console.error("Error loading shared data:", err);
@@ -310,7 +311,7 @@ const ERITool = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {areasData.map((data, idx) => (
+                            {areasData.filter(d => d.area !== 'Auditoria').map((data, idx) => (
                                 <tr key={idx}>
                                     <td className="row-header">{data.area}</td>
                                     <td className={getComponentColor(data.comp1)}>{data.comp1}</td>

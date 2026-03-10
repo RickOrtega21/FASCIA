@@ -9,7 +9,7 @@ const AREAS = [
     'Operaciones', 'Sistemas', 'Recursos Humanos', 'Comercial',
     'PMO y Calidad', 'Juridico', 'Finanzas', 'Suscripción Daños',
     'Indemnización Daños', 'Suscripción Personas', 'Reaseguro',
-    'Indemnización Personas', 'Gobierno Corporativo'
+    'Indemnización Personas', 'Gobierno Corporativo', 'Auditoria'
 ];
 
 const multipliers = {
@@ -74,7 +74,9 @@ const IEGTool = () => {
                 .from('evaluations_state')
                 .select('area_name, data');
 
-            if (error) throw error;
+            if (error) {
+                console.warn("Supabase fetch error, falling back to local data:", error);
+            }
 
             const remoteDataMap = {};
             supabaseData.forEach(item => {
@@ -140,9 +142,9 @@ const IEGTool = () => {
                 gtPctCumplimiento += pctCumplimiento;
             });
 
-            const numAreas = AREAS.length;
-            const instActual = Math.round(gtCalificacion / numAreas);
-            const instAnterior = Math.round(gtCalificacionAnterior / numAreas);
+            const filteredAreasCount = AREAS.filter(a => a !== 'Auditoria').length;
+            const instActual = Math.round(gtCalificacion / filteredAreasCount);
+            const instAnterior = Math.round(gtCalificacionAnterior / filteredAreasCount);
 
             let institutionalMejora = '0%';
             if (instActual > 0 && instAnterior > 0) {
@@ -158,14 +160,14 @@ const IEGTool = () => {
             }
             
             const globalTotals = {
-                comp1: Math.round(gtComp1 / numAreas),
-                comp2: Math.round(gtComp2 / numAreas),
-                comp3: Math.round(gtComp3 / numAreas),
-                comp4: Math.round(gtComp4 / numAreas),
-                comp5: Math.round(gtComp5 / numAreas),
+                comp1: Math.round(gtComp1 / filteredAreasCount),
+                comp2: Math.round(gtComp2 / filteredAreasCount),
+                comp3: Math.round(gtComp3 / filteredAreasCount),
+                comp4: Math.round(gtComp4 / filteredAreasCount),
+                comp5: Math.round(gtComp5 / filteredAreasCount),
                 calificacion: instActual,
                 noCount: gtNoCount,
-                pctCumplimiento: Math.round(gtPctCumplimiento / numAreas)
+                pctCumplimiento: Math.round(gtPctCumplimiento / filteredAreasCount)
             };
 
             const analysis = [];
