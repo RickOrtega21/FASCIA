@@ -17,7 +17,6 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     },
     { id: 'calendarios', label: 'Calendarios', icon: '📅' },
     { id: 'historial', label: 'Historial', icon: '📂' },
-    { id: 'config', label: 'Configuración', icon: '⚙️' },
   ];
 
   const handleItemClick = (item) => {

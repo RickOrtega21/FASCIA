@@ -18,8 +18,18 @@ const MonicaTool = ({ area, searchTerm }) => {
 
     // Effect to load data when area changes
     useEffect(() => {
-        setIsInitialLoad(true);
         const loadArea = async () => {
+            setIsInitialLoad(true);
+            // Reset form immediately to prevent "ghosting" data from previous area
+            setFormData({
+                evaluador: '',
+                evaluado: '',
+                fecha: new Date().toISOString().split('T')[0],
+                califActual: '',
+                califAnterior: '',
+                respuestas: {}
+            });
+
             try {
                 // Try fetching from Supabase first
                 const { data, error } = await supabase
@@ -37,20 +47,16 @@ const MonicaTool = ({ area, searchTerm }) => {
                     const savedData = localStorage.getItem(`monica_${area}`);
                     if (savedData) {
                         setFormData(JSON.parse(savedData));
-                    } else {
-                        setFormData({
-                            evaluador: '', evaluado: '', fecha: new Date().toISOString().split('T')[0],
-                            califActual: '', califAnterior: '', respuestas: {}
-                        });
                     }
+                    // Else state remains at default reset values
                 }
             } catch (err) {
-                console.error("Error loading data from Supabase:", err);
+                console.error("Error loading data:", err);
                 const savedData = localStorage.getItem(`monica_${area}`);
                 if (savedData) setFormData(JSON.parse(savedData));
             }
-            // Small timeout to prevent auto-save from triggering immediately after load
-            setTimeout(() => setIsInitialLoad(false), 100);
+            // Small timeout to ensure state has settled before allowing auto-save
+            setTimeout(() => setIsInitialLoad(false), 200);
         };
 
         loadArea();

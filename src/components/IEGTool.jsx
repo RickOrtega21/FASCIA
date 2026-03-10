@@ -241,15 +241,16 @@ const IEGTool = () => {
                                 <tr><td className="row-header" style={{ fontSize: '0.75rem' }}>Información y Comunicación</td><td className={getComponentColor(dataState.globalTotals.comp4)}>{dataState.globalTotals.comp4}</td></tr>
                                 <tr><td className="row-header" style={{ fontSize: '0.75rem' }}>Supervisión y Seguimiento</td><td className={getComponentColor(dataState.globalTotals.comp5)}>{dataState.globalTotals.comp5}</td></tr>
                                 <tr style={{ borderTop: '2px solid #002060' }}>
-                                    <td className="row-header" style={{ fontSize: '0.75rem' }}>Calificación</td>
+                                    <td className="row-header" style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Calificación</td>
                                     <td style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '0.9rem' }}>{dataState.globalTotals.calificacion}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
+                    {/* Section for Area Summary */}
                     <p className="ieg-paragraph" style={{ marginTop: '2rem' }}>
-                        La eficiencia del Sistema de Contraloría Interna obtiene una calificación para las áreas entre los rangos de <strong>{Math.min(...dataState.areasData.map(d => d.calificacion) || [0])} a {Math.max(...dataState.areasData.map(d => d.calificacion) || [0])}</strong> puntos de 100 en el cumplimiento de sus principios y componentes a nivel gerencial representados en la siguiente tabla.
+                        La eficiencia del Sistema de Contraloría Interna obtiene una calificación para las áreas entre los rangos de <strong>{dataState.areasData.length > 0 ? Math.min(...dataState.areasData.map(d => d.calificacion)) : 0} a {dataState.areasData.length > 0 ? Math.max(...dataState.areasData.map(d => d.calificacion)) : 0}</strong> puntos de 100 en el cumplimiento de sus principios y componentes a nivel gerencial representados en la siguiente tabla.
                     </p>
 
                     <div style={{ width: '40%', margin: '0 auto' }}>
