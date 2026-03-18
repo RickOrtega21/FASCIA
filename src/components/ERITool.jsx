@@ -189,27 +189,6 @@ const ERITool = () => {
         };
     }, []);
 
-    const exportToWord = () => {
-        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
-            "xmlns:w='urn:schemas-microsoft-com:office:word' " +
-            "xmlns='http://www.w3.org/TR/REC-html40'>" +
-            "<head><meta charset='utf-8'></head><body>";
-        const footer = "</body></html>";
-        
-        // We clone to remove non-printable elements if needed, but simple innerHTML works for basic tables.
-        const sourceHTML = header + document.querySelector('.eri-container').innerHTML + footer;
-        
-        const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'Evaluacion_Riesgos_Institucionales_ERI.doc';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    };
-
     const chartData = [
         { subject: 'Ambi Control', A: globalTotals.comp1, fullMark: 20 },
         { subject: 'Admi Riesgo', A: globalTotals.comp2, fullMark: 20 },
@@ -361,12 +340,6 @@ const ERITool = () => {
                             </tr>
                         </tbody>
                     </table>
-                </div>
-
-                <div className="eri-export-controls no-print" style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center', paddingBottom: '3rem' }}>
-                    <button className="eri-export-btn word-btn" onClick={exportToWord} style={{ padding: '10px 20px', backgroundColor: '#2b579a', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', fontSize: '1rem' }}>
-                        <span style={{ marginRight: '8px' }}>📝</span> Exportar a Word
-                    </button>
                 </div>
             </div>
         </div>

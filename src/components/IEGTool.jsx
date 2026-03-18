@@ -270,17 +270,37 @@ const IEGTool = () => {
     // Filtered areas for the report table
     const filteredAreas = dataState.areasData;
 
+    const exportToWord = () => {
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
+            "xmlns:w='urn:schemas-microsoft-com:office:word' " +
+            "xmlns='http://www.w3.org/TR/REC-html40'>" +
+            "<head><meta charset='utf-8'></head><body>";
+        const footer = "</body></html>";
+        
+        const sourceHTML = header + document.querySelector('.ieg-report').innerHTML + footer;
+        
+        const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Informe_Evaluacion_General_SCI_${period.replace(/ /g, '_')}_${today.getFullYear()}.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
     const handleSaveFullReport = async () => {
         try {
-            alert("Generando y guardando documento completo (IEG + Evaluaciones + ERI). Por favor espere...");
+            alert("Generando y guardando documento resumido (IEG + ERI). Por favor espere...");
             const element = document.getElementById('full-report-print');
-            element.style.display = 'block'; // Make it temporarily block so html2canvas sees it
+            element.style.display = 'block';
 
             const opt = {
                 margin: 0.5,
-                filename: `Reporte_Institucional_Completo_${period.replace(/ /g, '_')}_${today.getFullYear()}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 1.5, useCORS: true },
+                filename: `Reporte_Institucional_${period.replace(/ /g, '_')}_${today.getFullYear()}.pdf`,
+                image: { type: 'jpeg', quality: 0.80 }, // Lowered quality for smaller size
+                html2canvas: { scale: 1.25, useCORS: true }, // Lowered scale
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
 
@@ -531,6 +551,9 @@ const IEGTool = () => {
                     <button className="ieg-export-btn pdf" onClick={() => window.print()}>
                         <span style={{ marginRight: '8px' }}>📄</span> Exportar a PDF
                     </button>
+                    <button className="ieg-export-btn word-btn" onClick={exportToWord} style={{ backgroundColor: '#2b579a', color: 'white' }}>
+                        <span style={{ marginRight: '8px' }}>📝</span> Exportar a Word
+                    </button>
                     <button className="ieg-export-btn save" onClick={handleSaveFullReport} style={{ backgroundColor: '#28a745', color: 'white' }}>
                         <span style={{ marginRight: '8px' }}>💾</span> Guardar
                     </button>
@@ -585,54 +608,21 @@ const IEGTool = () => {
                     </button>
                 </div>
 
-                {/* HIDDEN CONTAINER FOR FULL PDF GENERATION */}
+                {/* HIDDEN CONTAINER FOR RESUMED PDF GENERATION */}
                 <div id="full-report-print" style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '800px', backgroundColor: 'white', padding: '40px', color: 'black', display: 'none' }}>
-                    {/* 1. IEG Report Clone */}
+                    {/* 1. IEG Report Snapshot */}
                     <div style={{ textAlign: 'center', marginBottom: '40px' }}>
                         <h1>Informe de Evaluación General del SCI</h1>
                         <p>Periodo de revisión: {period} del {today.getFullYear()}</p>
                         <p>Calificación Institucional del SCI: <strong>{dataState.globalTotals.calificacion} / 100</strong></p>
+                        <p style={{marginTop: '20px', fontStyle: 'italic', fontSize: '14px', color: '#555'}}>
+                            Adjunto a continuación se encuentra el resumen analítico gerencial por áreas mediante el modelo ERI.
+                        </p>
                     </div>
 
                     <div style={{ pageBreakBefore: 'always' }}></div>
 
-                    {/* 2. All Areas Evaluations */}
-                    <h2 style={{ color: '#002060', borderBottom: '2px solid #002060', paddingBottom: '10px' }}>Anexo: Evaluaciones por Área</h2>
-                    {Object.entries(dataState.allEvaluations).map(([areaName, areaData]) => (
-                        <div key={areaName} style={{ marginBottom: '50px', pageBreakInside: 'avoid' }}>
-                            <h3 style={{ backgroundColor: '#f0f4f8', padding: '10px' }}>Área: {areaName}</h3>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '15px' }}>
-                                <span><strong>Evaluador:</strong> {areaData?.evaluador || '-'}</span>
-                                <span><strong>Fecha:</strong> {areaData?.fecha || '-'}</span>
-                            </div>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px', textAlign: 'left' }}>
-                                <thead>
-                                    <tr style={{ backgroundColor: '#eaeaea' }}>
-                                        <th style={{ border: '1px solid #ccc', padding: '4px' }}>#</th>
-                                        <th style={{ border: '1px solid #ccc', padding: '4px' }}>Pregunta</th>
-                                        <th style={{ border: '1px solid #ccc', padding: '4px', textAlign: 'center' }}>Resp</th>
-                                        <th style={{ border: '1px solid #ccc', padding: '4px' }}>Soporte</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {questionsData.map(comp => 
-                                        comp.questions.map(q => (
-                                            <tr key={q.n}>
-                                                <td style={{ border: '1px solid #eee', padding: '4px' }}>{q.n}</td>
-                                                <td style={{ border: '1px solid #eee', padding: '4px' }}>{q.text}</td>
-                                                <td style={{ border: '1px solid #eee', padding: '4px', textAlign: 'center', fontWeight: 'bold' }}>{areaData?.respuestas?.[q.n] || '-'}</td>
-                                                <td style={{ border: '1px solid #eee', padding: '4px', fontStyle: 'italic', color: '#555' }}>{areaData?.respuestas?.[q.n+'_soporte'] || '-'}</td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    ))}
-
-                    <div style={{ pageBreakBefore: 'always' }}></div>
-
-                    {/* 3. ERI Table Clone */}
+                    {/* 2. ERI Table Clone */}
                     <h2 style={{ color: '#002060', borderBottom: '2px solid #002060', paddingBottom: '10px' }}>EVALUACIÓN DE RIESGOS INSTITUCIONALES (ERI)</h2>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'center', marginTop: '20px' }}>
                         <thead>
