@@ -172,7 +172,8 @@ const IEGTool = () => {
                 comp5: Math.round(gtComp5 / filteredAreasCount),
                 calificacion: instActual,
                 noCount: gtNoCount,
-                pctCumplimiento: Math.round(gtPctCumplimiento / filteredAreasCount)
+                pctCumplimiento: Math.round(gtPctCumplimiento / filteredAreasCount),
+                pctMejora: institutionalMejora
             };
 
             const analysis = [];
@@ -271,26 +272,6 @@ const IEGTool = () => {
 
     // Filtered areas for the report table
     const filteredAreas = dataState.areasData;
-
-    const exportToWord = () => {
-        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
-            "xmlns:w='urn:schemas-microsoft-com:office:word' " +
-            "xmlns='http://www.w3.org/TR/REC-html40'>" +
-            "<head><meta charset='utf-8'></head><body>";
-        const footer = "</body></html>";
-        
-        const sourceHTML = header + document.querySelector('.ieg-report').innerHTML + footer;
-        
-        const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Informe_Evaluacion_General_SCI_${period.replace(/ /g, '_')}_${today.getFullYear()}.doc`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    };
 
     const handleSaveFullReport = async () => {
         try {
@@ -394,7 +375,7 @@ const IEGTool = () => {
                         El objetivo del documento es informar al Director General sobre la operación y el estado actual del Sistema de Contraloría Interna en La Latinoamericana Seguros, S. A. (La Institución) en cumplimiento con la Circular Única de Seguros y Fianzas (CUSF) en su Título 3, capítulo 3.3, disposición 3.3.4. Informando el nivel de cumplimiento de los principios y componentes del SCI y las acciones a tomar para la mejora continua de las operaciones de la Institución con base en los Mecanismos Operacionales del Nivel de Control en las Áreas.
                     </p>
                     <p className="ieg-paragraph">
-                        En este periodo el desempeño de las actividades refleja que el cumplimiento a las políticas y procedimientos registrados consta del <strong>{dataState.globalTotals.pctCumplimiento}%</strong>, dado a que se encontraron una cantidad de <strong>{dataState.globalTotals.noCount}</strong> de deficiencias en las actividades de todas las áreas durante el periodo de evaluación, así mismo la tasa de mejora en el sistema para este semestre es de <strong>{dataState.institutionalMejora || '0%'}</strong> como resultado de un seguimiento trimestral.
+                        En este periodo el desempeño de las actividades refleja que el cumplimiento a las políticas y procedimientos registrados consta del <strong>{dataState.globalTotals.pctCumplimiento}%</strong>, dado a que se encontraron una cantidad de <strong>{dataState.globalTotals.noCount}</strong> de deficiencias de <strong>{filteredAreas.length * 40}</strong> en las actividades de todas las áreas durante el periodo de evaluación, así mismo la tasa de mejora en el sistema para este semestre es de <strong>{dataState.globalTotals.pctMejora}</strong> como resultado de un seguimiento trimestral.
                     </p>
                     <p className="ieg-paragraph">
                         Por lo anterior, la eficiencia del Sistema de Contraloría Interna obtiene una calificación de <strong>{dataState.globalTotals.calificacion}</strong> puntos de 100 en el cumplimiento de sus principios y componentes a nivel institucional representados en la siguiente tabla.
@@ -590,9 +571,6 @@ const IEGTool = () => {
                 <div className="ieg-export-controls no-print" style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center', gap: '1.5rem', paddingBottom: '3rem', flexWrap: 'wrap' }}>
                     <button className="ieg-export-btn pdf" onClick={() => window.print()}>
                         <span style={{ marginRight: '8px' }}>📄</span> Exportar a PDF
-                    </button>
-                    <button className="ieg-export-btn word-btn" onClick={exportToWord} style={{ backgroundColor: '#2b579a', color: 'white' }}>
-                        <span style={{ marginRight: '8px' }}>📝</span> Exportar a Word
                     </button>
                     <button className="ieg-export-btn save" onClick={handleSaveFullReport} style={{ backgroundColor: '#28a745', color: 'white' }}>
                         <span style={{ marginRight: '8px' }}>💾</span> Guardar
