@@ -59,7 +59,8 @@ const IEGTool = () => {
         areasData: [],
         globalTotals: { comp1: 0, comp2: 0, comp3: 0, comp4: 0, comp5: 0, calificacion: 0, noCount: 0, pctCumplimiento: 0 },
         noAnalysis: [],
-        approvedObjectives: {}
+        approvedObjectives: {},
+        allEvaluations: {}
     });
     const [loading, setLoading] = useState(true);
 
@@ -89,6 +90,7 @@ const IEGTool = () => {
             let gtCalificacionAnterior = 0;
 
             const globalNoCounts = {};
+            const allEvaluationsData = {};
 
             AREAS.forEach(area => {
                 const areaKey = `monica_${area}`;
@@ -98,6 +100,7 @@ const IEGTool = () => {
                     const localStr = localStorage.getItem(areaKey);
                     if (localStr) savedData = JSON.parse(localStr);
                 }
+                allEvaluationsData[area] = savedData || {};
 
                 const respuestas = savedData?.respuestas || {};
                 const califAnterior = parseFloat(savedData?.califAnterior) || 0;
@@ -135,16 +138,14 @@ const IEGTool = () => {
 
                 aggregatedAreas.push({ area, calificacion, noCount: areaNoCount, pctCumplimiento });
 
-                if (area !== 'Auditoria') {
-                    gtComp1 += comp1; gtComp2 += comp2; gtComp3 += comp3; gtComp4 += comp4; gtComp5 += comp5;
-                    gtCalificacion += calificacion;
-                    gtCalificacionAnterior += califAnterior;
-                    gtNoCount += areaNoCount;
-                    gtPctCumplimiento += pctCumplimiento;
-                }
+                gtComp1 += comp1; gtComp2 += comp2; gtComp3 += comp3; gtComp4 += comp4; gtComp5 += comp5;
+                gtCalificacion += calificacion;
+                gtCalificacionAnterior += califAnterior;
+                gtNoCount += areaNoCount;
+                gtPctCumplimiento += pctCumplimiento;
             });
 
-            const filteredAreasCount = AREAS.filter(a => a !== 'Auditoria').length;
+            const filteredAreasCount = AREAS.length;
             const instActual = Math.round(gtCalificacion / filteredAreasCount);
             const instAnterior = Math.round(gtCalificacionAnterior / filteredAreasCount);
 
@@ -191,7 +192,8 @@ const IEGTool = () => {
                 areasData: aggregatedAreas,
                 globalTotals,
                 noAnalysis: analysis,
-                approvedObjectives: {}
+                approvedObjectives: {},
+                allEvaluations: allEvaluationsData
             });
         } catch (err) {
             console.error("IEG Load Error:", err);
@@ -265,8 +267,44 @@ const IEGTool = () => {
     const today = new Date();
     const formattedDate = `${today.getDate()} de ${today.toLocaleString('es-ES', { month: 'long' })} de ${today.getFullYear()}`;
 
-    // Filtered areas for the report table (Excluding Auditoria)
-    const filteredAreas = dataState.areasData.filter(d => d.area !== 'Auditoria');
+    // Filtered areas for the report table
+    const filteredAreas = dataState.areasData;
+
+    const handleSaveFullReport = async () => {
+        try {
+            alert("Generando y guardando documento completo (IEG + Evaluaciones + ERI). Por favor espere...");
+            const element = document.getElementById('full-report-print');
+            element.style.display = 'block'; // Make it temporarily block so html2canvas sees it
+
+            const opt = {
+                margin: 0.5,
+                filename: `Reporte_Institucional_Completo_${period.replace(/ /g, '_')}_${today.getFullYear()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 1.5, useCORS: true },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            const pdfBase64 = await html2pdf().from(element).set(opt).output('datauristring');
+            element.style.display = 'none';
+
+            const historyData = {
+                title: `Reporte Institucional IEG - ${period} ${today.getFullYear()}`,
+                evaluator_name: 'Sistema Automático IEG',
+                period: period,
+                score: dataState.globalTotals.calificacion,
+                report_data: dataState.globalTotals,
+                pdf_base64: pdfBase64 // Storing base64 directly in database as requested
+            };
+
+            const { error } = await supabase.from('reports_history').insert([historyData]);
+            if (error) throw error;
+
+            alert("¡Documento completo guardado con éxito en el Historial!");
+        } catch (e) {
+            console.error("Save Report Error:", e);
+            alert(`Error al guardar el reporte: ${e.message}`);
+        }
+    };
 
     return (
         <div className="ieg-container">
@@ -489,9 +527,12 @@ const IEGTool = () => {
                     <p>Queda estrictamente prohibida la distribución de ejemplares a personas o Instituciones públicas o privadas ajenas a La Latino en México.</p>
                 </footer>
 
-                <div className="ieg-export-controls no-print" style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center', gap: '1.5rem', paddingBottom: '3rem' }}>
+                <div className="ieg-export-controls no-print" style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center', gap: '1.5rem', paddingBottom: '3rem', flexWrap: 'wrap' }}>
                     <button className="ieg-export-btn pdf" onClick={() => window.print()}>
                         <span style={{ marginRight: '8px' }}>📄</span> Exportar a PDF
+                    </button>
+                    <button className="ieg-export-btn save" onClick={handleSaveFullReport} style={{ backgroundColor: '#28a745', color: 'white' }}>
+                        <span style={{ marginRight: '8px' }}>💾</span> Guardar
                     </button>
                     <button className="ieg-export-btn email" onClick={async () => {
                         try {
@@ -542,6 +583,98 @@ const IEGTool = () => {
                     }}>
                         <span style={{ marginRight: '8px' }}>📧</span> Exportar en PDF y Enviarlo por Correo
                     </button>
+                </div>
+
+                {/* HIDDEN CONTAINER FOR FULL PDF GENERATION */}
+                <div id="full-report-print" style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '800px', backgroundColor: 'white', padding: '40px', color: 'black', display: 'none' }}>
+                    {/* 1. IEG Report Clone */}
+                    <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                        <h1>Informe de Evaluación General del SCI</h1>
+                        <p>Periodo de revisión: {period} del {today.getFullYear()}</p>
+                        <p>Calificación Institucional del SCI: <strong>{dataState.globalTotals.calificacion} / 100</strong></p>
+                    </div>
+
+                    <div style={{ pageBreakBefore: 'always' }}></div>
+
+                    {/* 2. All Areas Evaluations */}
+                    <h2 style={{ color: '#002060', borderBottom: '2px solid #002060', paddingBottom: '10px' }}>Anexo: Evaluaciones por Área</h2>
+                    {Object.entries(dataState.allEvaluations).map(([areaName, areaData]) => (
+                        <div key={areaName} style={{ marginBottom: '50px', pageBreakInside: 'avoid' }}>
+                            <h3 style={{ backgroundColor: '#f0f4f8', padding: '10px' }}>Área: {areaName}</h3>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '15px' }}>
+                                <span><strong>Evaluador:</strong> {areaData?.evaluador || '-'}</span>
+                                <span><strong>Fecha:</strong> {areaData?.fecha || '-'}</span>
+                            </div>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px', textAlign: 'left' }}>
+                                <thead>
+                                    <tr style={{ backgroundColor: '#eaeaea' }}>
+                                        <th style={{ border: '1px solid #ccc', padding: '4px' }}>#</th>
+                                        <th style={{ border: '1px solid #ccc', padding: '4px' }}>Pregunta</th>
+                                        <th style={{ border: '1px solid #ccc', padding: '4px', textAlign: 'center' }}>Resp</th>
+                                        <th style={{ border: '1px solid #ccc', padding: '4px' }}>Soporte</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {questionsData.map(comp => 
+                                        comp.questions.map(q => (
+                                            <tr key={q.n}>
+                                                <td style={{ border: '1px solid #eee', padding: '4px' }}>{q.n}</td>
+                                                <td style={{ border: '1px solid #eee', padding: '4px' }}>{q.text}</td>
+                                                <td style={{ border: '1px solid #eee', padding: '4px', textAlign: 'center', fontWeight: 'bold' }}>{areaData?.respuestas?.[q.n] || '-'}</td>
+                                                <td style={{ border: '1px solid #eee', padding: '4px', fontStyle: 'italic', color: '#555' }}>{areaData?.respuestas?.[q.n+'_soporte'] || '-'}</td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    ))}
+
+                    <div style={{ pageBreakBefore: 'always' }}></div>
+
+                    {/* 3. ERI Table Clone */}
+                    <h2 style={{ color: '#002060', borderBottom: '2px solid #002060', paddingBottom: '10px' }}>EVALUACIÓN DE RIESGOS INSTITUCIONALES (ERI)</h2>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'center', marginTop: '20px' }}>
+                        <thead>
+                            <tr style={{ backgroundColor: '#002060', color: 'white' }}>
+                                <th style={{ border: '1px solid #333', padding: '8px' }}>Área</th>
+                                <th style={{ border: '1px solid #333', padding: '8px' }}>Ambi Control</th>
+                                <th style={{ border: '1px solid #333', padding: '8px' }}>Admi Riesgo</th>
+                                <th style={{ border: '1px solid #333', padding: '8px' }}>Actv Control</th>
+                                <th style={{ border: '1px solid #333', padding: '8px' }}>Infor y Comu</th>
+                                <th style={{ border: '1px solid #333', padding: '8px' }}>Superv y Seg</th>
+                                <th style={{ border: '1px solid #333', padding: '8px', backgroundColor: '#ffd700', color: 'black' }}>Calificación</th>
+                                <th style={{ border: '1px solid #333', padding: '8px' }}>N. Deficiencias</th>
+                                <th style={{ border: '1px solid #333', padding: '8px' }}>% Cumplim</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {dataState.areasData.map(d => (
+                                <tr key={d.area} style={{ backgroundColor: d.area === 'Auditoria' ? '#ffffe0' : 'transparent' }}>
+                                    <td style={{ border: '1px solid #ccc', padding: '6px', textAlign: 'left', fontWeight: 'bold' }}>{d.area}</td>
+                                    <td style={{ border: '1px solid #ccc', padding: '6px' }}>{d.comp1 || '-'}</td>
+                                    <td style={{ border: '1px solid #ccc', padding: '6px' }}>{d.comp2 || '-'}</td>
+                                    <td style={{ border: '1px solid #ccc', padding: '6px' }}>{d.comp3 || '-'}</td>
+                                    <td style={{ border: '1px solid #ccc', padding: '6px' }}>{d.comp4 || '-'}</td>
+                                    <td style={{ border: '1px solid #ccc', padding: '6px' }}>{d.comp5 || '-'}</td>
+                                    <td style={{ border: '1px solid #ccc', padding: '6px', fontWeight: 'bold', backgroundColor: '#fffbe6' }}>{d.calificacion}</td>
+                                    <td style={{ border: '1px solid #ccc', padding: '6px', color: 'red' }}>{d.noCount}</td>
+                                    <td style={{ border: '1px solid #ccc', padding: '6px' }}>{d.pctCumplimiento}%</td>
+                                </tr>
+                            ))}
+                            <tr style={{ backgroundColor: '#eee', fontWeight: 'bold' }}>
+                                <td style={{ border: '1px solid #ccc', padding: '6px', textAlign: 'left' }}>TOTAL INSTITUCIONAL</td>
+                                <td style={{ border: '1px solid #ccc', padding: '6px' }}>{dataState.globalTotals.comp1}</td>
+                                <td style={{ border: '1px solid #ccc', padding: '6px' }}>{dataState.globalTotals.comp2}</td>
+                                <td style={{ border: '1px solid #ccc', padding: '6px' }}>{dataState.globalTotals.comp3}</td>
+                                <td style={{ border: '1px solid #ccc', padding: '6px' }}>{dataState.globalTotals.comp4}</td>
+                                <td style={{ border: '1px solid #ccc', padding: '6px' }}>{dataState.globalTotals.comp5}</td>
+                                <td style={{ border: '1px solid #ccc', padding: '6px', backgroundColor: '#ffd700', color: 'black' }}>{dataState.globalTotals.calificacion}</td>
+                                <td style={{ border: '1px solid #ccc', padding: '6px', color: 'red' }}>{dataState.globalTotals.noCount}</td>
+                                <td style={{ border: '1px solid #ccc', padding: '6px' }}>{dataState.globalTotals.pctCumplimiento}%</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

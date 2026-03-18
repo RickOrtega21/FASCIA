@@ -134,15 +134,13 @@ const ERITool = () => {
                         calificacion, noCount, pctCumplimiento, pctMejora
                     });
 
-                    if (area !== 'Auditoria') {
-                        gtComp1 += comp1; gtComp2 += comp2; gtComp3 += comp3; gtComp4 += comp4; gtComp5 += comp5;
-                        gtCalificacion += calificacion;
-                        gtNoCount += noCount;
-                        gtPctCumplimiento += pctCumplimiento;
-                    }
+                    gtComp1 += comp1; gtComp2 += comp2; gtComp3 += comp3; gtComp4 += comp4; gtComp5 += comp5;
+                    gtCalificacion += calificacion;
+                    gtNoCount += noCount;
+                    gtPctCumplimiento += pctCumplimiento;
                 });
 
-                const filteredAreasCount = AREAS.filter(a => a !== 'Auditoria').length;
+                const filteredAreasCount = AREAS.length;
                 setAreasData(aggregatedData);
                 setGlobalTotals({
                     comp1: Math.round(gtComp1 / filteredAreasCount),
@@ -190,6 +188,27 @@ const ERITool = () => {
             window.removeEventListener('monicaDataUpdated', loadSharedData);
         };
     }, []);
+
+    const exportToWord = () => {
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
+            "xmlns:w='urn:schemas-microsoft-com:office:word' " +
+            "xmlns='http://www.w3.org/TR/REC-html40'>" +
+            "<head><meta charset='utf-8'></head><body>";
+        const footer = "</body></html>";
+        
+        // We clone to remove non-printable elements if needed, but simple innerHTML works for basic tables.
+        const sourceHTML = header + document.querySelector('.eri-container').innerHTML + footer;
+        
+        const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'Evaluacion_Riesgos_Institucionales_ERI.doc';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
 
     const chartData = [
         { subject: 'Ambi Control', A: globalTotals.comp1, fullMark: 20 },
@@ -314,7 +333,7 @@ const ERITool = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {areasData.filter(d => d.area !== 'Auditoria').map((data, idx) => (
+                            {areasData.map((data, idx) => (
                                 <tr key={idx}>
                                     <td className="row-header">{data.area}</td>
                                     <td className={getComponentColor(data.comp1)}>{data.comp1}</td>
@@ -342,6 +361,12 @@ const ERITool = () => {
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <div className="eri-export-controls no-print" style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center', paddingBottom: '3rem' }}>
+                    <button className="eri-export-btn word-btn" onClick={exportToWord} style={{ padding: '10px 20px', backgroundColor: '#2b579a', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', fontSize: '1rem' }}>
+                        <span style={{ marginRight: '8px' }}>📝</span> Exportar a Word
+                    </button>
                 </div>
             </div>
         </div>

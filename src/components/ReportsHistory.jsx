@@ -55,6 +55,19 @@ const ReportsHistory = () => {
         (report.period || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const downloadPdf = (base64Data, filename) => {
+        if (!base64Data) {
+            alert('El archivo PDF completo no se encuentra disponible para este reporte anterior.');
+            return;
+        }
+        const link = document.createElement("a");
+        link.href = base64Data;
+        link.download = filename || 'Reporte_Institucional.pdf';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="history-container">
             <h1 className="history-title">Repositorio de Informes SCI</h1>
@@ -77,25 +90,43 @@ const ReportsHistory = () => {
             {loading ? (
                 <div className="history-loading">Cargando informes...</div>
             ) : filteredReports.length > 0 ? (
-                <div className="history-grid">
-                    {filteredReports.map(report => (
-                        <div key={report.id} className="history-card">
-                            <div className="history-card-header">
-                                <h3>{report.title}</h3>
-                                <span className={`history-score ${report.score >= 80 ? 'good' : report.score >= 50 ? 'warning' : 'danger'}`}>
-                                    {report.score}/100
-                                </span>
-                            </div>
-                            <div className="history-card-body">
-                                <p><strong>Evaluador:</strong> {report.evaluator_name || 'Admin'}</p>
-                                <p><strong>Periodo:</strong> {report.period}</p>
-                                <p><strong>Fecha:</strong> {new Date(report.created_at).toLocaleDateString('es-MX')}</p>
-                            </div>
-                            <div className="history-card-footer">
-                                <button className="history-view-btn">Ver Detalle</button>
-                            </div>
-                        </div>
-                    ))}
+                <div className="history-table-container">
+                    <table className="history-styled-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Periodo</th>
+                                <th>Nombre</th>
+                                <th style={{ textAlign: 'center' }}>Calificación</th>
+                                <th style={{ textAlign: 'center' }}>Archivo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredReports.map(report => (
+                                <tr key={report.id}>
+                                    <td>{new Date(report.created_at).toLocaleDateString('es-MX')}</td>
+                                    <td>{report.period}</td>
+                                    <td>
+                                        <strong>{report.title}</strong><br/>
+                                        <span style={{ fontSize: '0.8rem', color: '#666' }}>Evaluador: {report.evaluator_name || 'Admin'}</span>
+                                    </td>
+                                    <td style={{ textAlign: 'center' }}>
+                                        <span className={`history-score ${report.score >= 80 ? 'good' : report.score >= 50 ? 'warning' : 'danger'}`}>
+                                            {report.score}/100
+                                        </span>
+                                    </td>
+                                    <td style={{ textAlign: 'center' }}>
+                                        <button 
+                                            className={`history-download-btn ${report.pdf_base64 ? '' : 'disabled'}`}
+                                            onClick={() => downloadPdf(report.pdf_base64, `${report.title.replace(/ /g, '_')}.pdf`)}
+                                        >
+                                            📄 Descargar
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             ) : (
                 <div className="history-empty">

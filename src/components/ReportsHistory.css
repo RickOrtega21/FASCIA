@@ -75,42 +75,44 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-.history-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-}
-
-.history-card {
+.history-table-container {
+    width: 100%;
+    overflow-x: auto;
     background: white;
     border-radius: 12px;
-    padding: 1.5rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    border-left: 4px solid var(--primary);
-    display: flex;
-    flex-direction: column;
 }
 
-.history-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
+.history-styled-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.history-card-header h3 {
-    margin: 0;
-    color: var(--primary);
-    font-size: 1.1rem;
-    flex: 1;
+.history-styled-table th,
+.history-styled-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.history-styled-table th {
+    background-color: var(--primary);
+    color: white;
+    font-weight: 600;
+}
+
+.history-styled-table tbody tr:hover {
+    background-color: #f9f9fc;
 }
 
 .history-score {
-    padding: 4px 8px;
+    padding: 4px 10px;
     border-radius: 12px;
     font-weight: bold;
     font-size: 0.9rem;
     color: white;
+    display: inline-block;
 }
 
 .history-score.good {
@@ -125,36 +127,23 @@
     background-color: #f44336;
 }
 
-.history-card-body {
-    flex: 1;
-    color: var(--text);
-    font-size: 0.9rem;
-}
-
-.history-card-body p {
-    margin: 0.5rem 0;
-}
-
-.history-card-footer {
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: flex-end;
-}
-
-.history-view-btn {
-    padding: 0.5rem 1rem;
-    background: none;
-    border: 1px solid var(--accent);
-    color: var(--primary);
+.history-download-btn {
+    padding: 0.6rem 1rem;
+    background-color: #2b579a;
+    color: white;
+    border: none;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
     transition: all 0.2s;
 }
 
-.history-view-btn:hover {
-    background: var(--accent);
-    color: white;
+.history-download-btn:hover {
+    background-color: #1e3d6b;
+}
+
+.history-download-btn.disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    color: #666;
 }
