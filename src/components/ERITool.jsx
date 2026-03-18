@@ -38,7 +38,7 @@ const getGrandTotalColor = (value) => {
     return 'status-green';
 };
 
-const ERITool = () => {
+const ERITool = ({ isPrintMode = false }) => {
     const [areasData, setAreasData] = useState([]);
     const [globalTotals, setGlobalTotals] = useState({
         comp1: 0, comp2: 0, comp3: 0, comp4: 0, comp5: 0,
@@ -112,7 +112,7 @@ const ERITool = () => {
                     const pctCumplimiento = Math.round((1 - (noCount / 40)) * 100);
 
                     let pctMejora = '—';
-                    const actual = parseFloat(califActual) || 0;
+                    const actual = calificacion; // USAMOS LA OBTENIDA DINÁMICAMENTE EN VEZ DE califActual ESTÁTICO
                     const anterior = parseFloat(califAnterior) || 0;
 
                     if (actual > 0 && anterior > 0) {
@@ -125,13 +125,15 @@ const ERITool = () => {
                     } else if (actual > 0 && anterior === 0) {
                         pctMejora = '100%';
                     } else if (actual === 0 && anterior > 0) {
+                        // Si era 0 (ej: Auditoria que ahora sí califica) y antes había, o viceversa
                         pctMejora = '-100%';
                     }
 
                     aggregatedData.push({
                         area,
                         comp1, comp2, comp3, comp4, comp5,
-                        calificacion, noCount, pctCumplimiento, pctMejora
+                        calificacion, noCount, pctCumplimiento, pctMejora,
+                        anteriorValue: anterior // guardamos para el total global
                     });
 
                     gtComp1 += comp1; gtComp2 += comp2; gtComp3 += comp3; gtComp4 += comp4; gtComp5 += comp5;
@@ -141,6 +143,27 @@ const ERITool = () => {
                 });
 
                 const filteredAreasCount = AREAS.length;
+                const finalGtCalificacion = Math.round(gtCalificacion / filteredAreasCount);
+                
+                // Calculo de % de Mejora Global
+                let totalAnterior = 0;
+                aggregatedData.forEach(d => totalAnterior += d.anteriorValue);
+                const avgTotalAnterior = totalAnterior / filteredAreasCount;
+                
+                let globalMejora = '—';
+                if (finalGtCalificacion > 0 && avgTotalAnterior > 0) {
+                    if (finalGtCalificacion === avgTotalAnterior) {
+                        globalMejora = '0%';
+                    } else {
+                        const growth = Math.round(((finalGtCalificacion - avgTotalAnterior) / avgTotalAnterior) * 100);
+                        globalMejora = (growth > 0 ? '+' : '') + growth + '%';
+                    }
+                } else if (finalGtCalificacion > 0 && avgTotalAnterior === 0) {
+                    globalMejora = '100%';
+                } else if (finalGtCalificacion === 0 && avgTotalAnterior > 0) {
+                    globalMejora = '-100%';
+                }
+
                 setAreasData(aggregatedData);
                 setGlobalTotals({
                     comp1: Math.round(gtComp1 / filteredAreasCount),
@@ -148,9 +171,10 @@ const ERITool = () => {
                     comp3: Math.round(gtComp3 / filteredAreasCount),
                     comp4: Math.round(gtComp4 / filteredAreasCount),
                     comp5: Math.round(gtComp5 / filteredAreasCount),
-                    calificacion: Math.round(gtCalificacion / filteredAreasCount),
+                    calificacion: finalGtCalificacion,
                     noCount: gtNoCount,
-                    pctCumplimiento: Math.round(gtPctCumplimiento / filteredAreasCount)
+                    pctCumplimiento: Math.round(gtPctCumplimiento / filteredAreasCount),
+                    pctMejora: globalMejora
                 });
             } catch (err) {
                 console.error("Error loading shared data:", err);
@@ -227,7 +251,7 @@ const ERITool = () => {
                                     <ReferenceLine y={8} stroke="#ff0000" strokeWidth={1.5} />
                                     <ReferenceLine y={14} stroke="#ffd700" strokeWidth={1.5} />
                                     <ReferenceLine y={20} stroke="#2ecc40" strokeWidth={1.5} />
-                                    <Bar dataKey="A" barSize={35}>
+                                    <Bar dataKey="A" barSize={35} isAnimationActive={!isPrintMode}>
                                         <LabelList dataKey="A" position="insideTop" fill="#111111" fontSize={11} fontWeight="bold" />
                                         {chartData.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={getChartBarColor(entry.A)} />
@@ -244,7 +268,7 @@ const ERITool = () => {
                                     <PolarGrid gridType="polygon" />
                                     <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fontWeight: 'bold' }} />
                                     <PolarRadiusAxis angle={90} tickCount={8} />
-                                    <Radar name="Institucional" dataKey="A" stroke="#0088fe" strokeWidth={3} fill="#0088fe" fillOpacity={0.1} />
+                                    <Radar name="Institucional" dataKey="A" stroke="#0088fe" strokeWidth={3} fill="#0088fe" fillOpacity={0.1} isAnimationActive={!isPrintMode} />
                                     <RechartsTooltip />
                                 </RadarChart>
                             </ResponsiveContainer>
@@ -259,7 +283,7 @@ const ERITool = () => {
                                 <tbody>
                                     <tr><td className="row-header">N. Deficiencias</td><td className="status-red">{globalTotals.noCount}</td></tr>
                                     <tr><td className="row-header">% Cumplimiento</td><td style={{ fontWeight: 'bold' }}>{globalTotals.pctCumplimiento}%</td></tr>
-                                    <tr><td className="row-header">% Mejora</td><td style={{ fontWeight: 'bold' }}>100%</td></tr>
+                                    <tr><td className="row-header">% Mejora</td><td style={{ fontWeight: 'bold' }}>{globalTotals.pctMejora}</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -336,7 +360,7 @@ const ERITool = () => {
                                 <td className={getGrandTotalColor(globalTotals.calificacion)}>{globalTotals.calificacion}</td>
                                 <td className="status-red">{globalTotals.noCount}</td>
                                 <td>{globalTotals.pctCumplimiento}%</td>
-                                <td>100%</td>
+                                <td>{globalTotals.pctMejora}</td>
                             </tr>
                         </tbody>
                     </table>

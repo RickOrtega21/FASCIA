@@ -4,6 +4,8 @@ import './IEGTool.css';
 import questionsData from '../data/monica_questions.json';
 import html2pdf from 'html2pdf.js';
 import { supabase } from '../supabaseClient';
+import { createRoot } from 'react-dom/client';
+import ERITool from './ERITool';
 
 const AREAS = [
     'Operaciones', 'Sistemas', 'Recursos Humanos', 'Comercial',
@@ -292,12 +294,16 @@ const IEGTool = () => {
 
     const handleSaveFullReport = async () => {
         try {
-            alert("Generando y guardando documento (ERI + IEG). Por favor espere...");
+            alert("Generando y guardando documento (ERI + IEG). Por favor espere unos segundos...");
             const reportContainer = document.querySelector('.ieg-report');
             
             // Ocultamos controles temporalmente para el snapshot
             const controls = document.querySelector('.ieg-export-controls');
             if (controls) controls.style.display = 'none';
+
+            // Ocultar sección Análisis de Deficiencias y más abajo
+            const noPrintSections = document.querySelectorAll('.no-print');
+            noPrintSections.forEach(el => el.style.display = 'none');
 
             // Agregamos la seccion ERI al inicio del DOM en vivo
             const eriSectionId = 'temp-eri-section';
@@ -308,15 +314,16 @@ const IEGTool = () => {
                 eriSection.style.pageBreakAfter = 'always';
                 eriSection.style.paddingBottom = '40px';
                 eriSection.style.width = '100%';
-                eriSection.innerHTML = `
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <h2 style="color: #002060; border-bottom: 2px solid #002060; padding-bottom: 10px;">EVALUACIÓN DE RIESGOS INSTITUCIONALES (ERI)</h2>
-                        <p>Periodo de revisión: ${period} del ${today.getFullYear()}</p>
-                    </div>
-                ` + document.getElementById('eri-table-template').innerHTML;
                 
                 reportContainer.insertBefore(eriSection, reportContainer.firstChild);
+
+                // Renderizamos ERI Tool estatico real
+                const root = createRoot(eriSection);
+                root.render(<ERITool isPrintMode={true} />);
             }
+
+            // Pausa necesaria para que React y Recharts dibujen las graficas completas en el ERI inyectado
+            await new Promise(r => setTimeout(r, 1200));
 
             const opt = {
                 margin: 0.5,
@@ -330,7 +337,12 @@ const IEGTool = () => {
             
             // Restaurar la vista
             if (controls) controls.style.display = 'flex';
-            if (eriSection) eriSection.remove();
+            noPrintSections.forEach(el => el.style.display = '');
+            if (eriSection) {
+                const root = createRoot(eriSection);
+                root.unmount();
+                eriSection.remove();
+            }
 
             const historyData = {
                 title: `Reporte Institucional IEG - ${period} ${today.getFullYear()}`,
@@ -348,6 +360,7 @@ const IEGTool = () => {
         } catch (e) {
             console.error("Save Report Error:", e);
             if (document.querySelector('.ieg-export-controls')) document.querySelector('.ieg-export-controls').style.display = 'flex';
+            document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
             if (document.getElementById('temp-eri-section')) document.getElementById('temp-eri-section').remove();
             alert(`Error al guardar el reporte: ${e.message}`);
         }
@@ -635,50 +648,7 @@ const IEGTool = () => {
                     </button>
                 </div>
 
-                {/* HIDDEN TEMPLATE FOR ERI TABLE INJECTION */}
-                <div id="eri-table-template" style={{ display: 'none' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'center', marginTop: '20px' }}>
-                         <thead>
-                            <tr style={{ backgroundColor: '#002060', color: 'white' }}>
-                                <th style={{ border: '1px solid #333', padding: '8px' }}>Área</th>
-                                <th style={{ border: '1px solid #333', padding: '8px' }}>Ambi Control</th>
-                                <th style={{ border: '1px solid #333', padding: '8px' }}>Admi Riesgo</th>
-                                <th style={{ border: '1px solid #333', padding: '8px' }}>Actv Control</th>
-                                <th style={{ border: '1px solid #333', padding: '8px' }}>Infor y Comu</th>
-                                <th style={{ border: '1px solid #333', padding: '8px' }}>Superv y Seg</th>
-                                <th style={{ border: '1px solid #333', padding: '8px', backgroundColor: '#ffd700', color: 'black' }}>Calificación</th>
-                                <th style={{ border: '1px solid #333', padding: '8px' }}>N. Deficiencias</th>
-                                <th style={{ border: '1px solid #333', padding: '8px' }}>% Cumplim</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {dataState.areasData.map(d => (
-                                <tr key={d.area} style={{ backgroundColor: d.area === 'Auditoria' ? '#ffffe0' : 'transparent' }}>
-                                    <td style={{ border: '1px solid #ccc', padding: '6px', textAlign: 'left', fontWeight: 'bold' }}>{d.area}</td>
-                                    <td style={{ border: '1px solid #ccc', padding: '6px' }}>{d.comp1 || '-'}</td>
-                                    <td style={{ border: '1px solid #ccc', padding: '6px' }}>{d.comp2 || '-'}</td>
-                                    <td style={{ border: '1px solid #ccc', padding: '6px' }}>{d.comp3 || '-'}</td>
-                                    <td style={{ border: '1px solid #ccc', padding: '6px' }}>{d.comp4 || '-'}</td>
-                                    <td style={{ border: '1px solid #ccc', padding: '6px' }}>{d.comp5 || '-'}</td>
-                                    <td style={{ border: '1px solid #ccc', padding: '6px', fontWeight: 'bold', backgroundColor: '#fffbe6' }}>{d.calificacion}</td>
-                                    <td style={{ border: '1px solid #ccc', padding: '6px', color: 'red' }}>{d.noCount}</td>
-                                    <td style={{ border: '1px solid #ccc', padding: '6px' }}>{d.pctCumplimiento}%</td>
-                                </tr>
-                            ))}
-                            <tr style={{ backgroundColor: '#eee', fontWeight: 'bold' }}>
-                                <td style={{ border: '1px solid #ccc', padding: '6px', textAlign: 'left' }}>TOTAL INSTITUCIONAL</td>
-                                <td style={{ border: '1px solid #ccc', padding: '6px' }}>{dataState.globalTotals.comp1}</td>
-                                <td style={{ border: '1px solid #ccc', padding: '6px' }}>{dataState.globalTotals.comp2}</td>
-                                <td style={{ border: '1px solid #ccc', padding: '6px' }}>{dataState.globalTotals.comp3}</td>
-                                <td style={{ border: '1px solid #ccc', padding: '6px' }}>{dataState.globalTotals.comp4}</td>
-                                <td style={{ border: '1px solid #ccc', padding: '6px' }}>{dataState.globalTotals.comp5}</td>
-                                <td style={{ border: '1px solid #ccc', padding: '6px', backgroundColor: '#ffd700', color: 'black' }}>{dataState.globalTotals.calificacion}</td>
-                                <td style={{ border: '1px solid #ccc', padding: '6px', color: 'red' }}>{dataState.globalTotals.noCount}</td>
-                                <td style={{ border: '1px solid #ccc', padding: '6px' }}>{dataState.globalTotals.pctCumplimiento}%</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                {/* SE ELIMINÓ EL TEMPLATE OCULTO PARA ERI PUES AHORA RENDEREA COMPONENTE VIA ROOT INYECTADO */}
             </div>
         </div>
     );
