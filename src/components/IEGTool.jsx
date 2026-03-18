@@ -292,20 +292,45 @@ const IEGTool = () => {
 
     const handleSaveFullReport = async () => {
         try {
-            alert("Generando y guardando documento resumido (IEG + ERI). Por favor espere...");
-            const element = document.getElementById('full-report-print');
-            element.style.display = 'block';
+            alert("Generando y guardando documento (ERI + IEG). Por favor espere...");
+            const reportContainer = document.querySelector('.ieg-report');
+            
+            // Ocultamos controles temporalmente para el snapshot
+            const controls = document.querySelector('.ieg-export-controls');
+            if (controls) controls.style.display = 'none';
+
+            // Agregamos la seccion ERI al inicio del DOM en vivo
+            const eriSectionId = 'temp-eri-section';
+            let eriSection = document.getElementById(eriSectionId);
+            if (!eriSection) {
+                eriSection = document.createElement('div');
+                eriSection.id = eriSectionId;
+                eriSection.style.pageBreakAfter = 'always';
+                eriSection.style.paddingBottom = '40px';
+                eriSection.style.width = '100%';
+                eriSection.innerHTML = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h2 style="color: #002060; border-bottom: 2px solid #002060; padding-bottom: 10px;">EVALUACIÓN DE RIESGOS INSTITUCIONALES (ERI)</h2>
+                        <p>Periodo de revisión: ${period} del ${today.getFullYear()}</p>
+                    </div>
+                ` + document.getElementById('eri-table-template').innerHTML;
+                
+                reportContainer.insertBefore(eriSection, reportContainer.firstChild);
+            }
 
             const opt = {
                 margin: 0.5,
                 filename: `Reporte_Institucional_${period.replace(/ /g, '_')}_${today.getFullYear()}.pdf`,
-                image: { type: 'jpeg', quality: 0.80 }, // Lowered quality for smaller size
-                html2canvas: { scale: 1.25, useCORS: true }, // Lowered scale
+                image: { type: 'jpeg', quality: 0.90 }, 
+                html2canvas: { scale: 1.5, useCORS: true, letterRendering: true, windowWidth: reportContainer.scrollWidth }, 
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
 
-            const pdfBase64 = await html2pdf().from(element).set(opt).output('datauristring');
-            element.style.display = 'none';
+            const pdfBase64 = await html2pdf().from(reportContainer).set(opt).output('datauristring');
+            
+            // Restaurar la vista
+            if (controls) controls.style.display = 'flex';
+            if (eriSection) eriSection.remove();
 
             const historyData = {
                 title: `Reporte Institucional IEG - ${period} ${today.getFullYear()}`,
@@ -313,15 +338,17 @@ const IEGTool = () => {
                 period: period,
                 score: dataState.globalTotals.calificacion,
                 report_data: dataState.globalTotals,
-                pdf_base64: pdfBase64 // Storing base64 directly in database as requested
+                pdf_base64: pdfBase64
             };
 
             const { error } = await supabase.from('reports_history').insert([historyData]);
             if (error) throw error;
 
-            alert("¡Documento completo guardado con éxito en el Historial!");
+            alert("¡Documento guardado con éxito en el Historial!");
         } catch (e) {
             console.error("Save Report Error:", e);
+            if (document.querySelector('.ieg-export-controls')) document.querySelector('.ieg-export-controls').style.display = 'flex';
+            if (document.getElementById('temp-eri-section')) document.getElementById('temp-eri-section').remove();
             alert(`Error al guardar el reporte: ${e.message}`);
         }
     };
@@ -608,24 +635,10 @@ const IEGTool = () => {
                     </button>
                 </div>
 
-                {/* HIDDEN CONTAINER FOR RESUMED PDF GENERATION */}
-                <div id="full-report-print" style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '800px', backgroundColor: 'white', padding: '40px', color: 'black', display: 'none' }}>
-                    {/* 1. IEG Report Snapshot */}
-                    <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-                        <h1>Informe de Evaluación General del SCI</h1>
-                        <p>Periodo de revisión: {period} del {today.getFullYear()}</p>
-                        <p>Calificación Institucional del SCI: <strong>{dataState.globalTotals.calificacion} / 100</strong></p>
-                        <p style={{marginTop: '20px', fontStyle: 'italic', fontSize: '14px', color: '#555'}}>
-                            Adjunto a continuación se encuentra el resumen analítico gerencial por áreas mediante el modelo ERI.
-                        </p>
-                    </div>
-
-                    <div style={{ pageBreakBefore: 'always' }}></div>
-
-                    {/* 2. ERI Table Clone */}
-                    <h2 style={{ color: '#002060', borderBottom: '2px solid #002060', paddingBottom: '10px' }}>EVALUACIÓN DE RIESGOS INSTITUCIONALES (ERI)</h2>
+                {/* HIDDEN TEMPLATE FOR ERI TABLE INJECTION */}
+                <div id="eri-table-template" style={{ display: 'none' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'center', marginTop: '20px' }}>
-                        <thead>
+                         <thead>
                             <tr style={{ backgroundColor: '#002060', color: 'white' }}>
                                 <th style={{ border: '1px solid #333', padding: '8px' }}>Área</th>
                                 <th style={{ border: '1px solid #333', padding: '8px' }}>Ambi Control</th>
