@@ -147,3 +147,23 @@
     cursor: not-allowed;
     color: #666;
 }
+
+/* === Score Evolution Chart === */
+.history-chart-container {
+    background: linear-gradient(170deg, #fdf6e3 0%, #f5e9c8 100%);
+    border: 1px solid #e0c97a;
+    border-radius: 16px;
+    padding: 1.5rem 1.5rem 1rem 0.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 18px rgba(180, 140, 40, 0.15);
+}
+
+.history-chart-title {
+    color: #7a5520;
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 0.8rem 1rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-family: Georgia, serif;
+}

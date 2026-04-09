@@ -61,8 +61,13 @@ const IEGTool = () => {
         areasData: [],
         globalTotals: { comp1: 0, comp2: 0, comp3: 0, comp4: 0, comp5: 0, calificacion: 0, noCount: 0, pctCumplimiento: 0 },
         noAnalysis: [],
-        approvedObjectives: {},
         allEvaluations: {}
+    });
+    const [approvedObjectives, setApprovedObjectives] = useState(() => {
+        try {
+            const saved = localStorage.getItem('fascia_approved_objectives');
+            return saved ? JSON.parse(saved) : {};
+        } catch { return {}; }
     });
     const [loading, setLoading] = useState(true);
 
@@ -195,7 +200,6 @@ const IEGTool = () => {
                 areasData: aggregatedAreas,
                 globalTotals,
                 noAnalysis: analysis,
-                approvedObjectives: {},
                 allEvaluations: allEvaluationsData
             });
         } catch (err) {
@@ -204,6 +208,10 @@ const IEGTool = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        localStorage.setItem('fascia_approved_objectives', JSON.stringify(approvedObjectives));
+    }, [approvedObjectives]);
 
     useEffect(() => {
         loadAllData();
@@ -254,12 +262,9 @@ const IEGTool = () => {
 
 
     const toggleApprove = (n) => {
-        setDataState(prev => ({
+        setApprovedObjectives(prev => ({
             ...prev,
-            approvedObjectives: {
-                ...prev.approvedObjectives,
-                [n]: !prev.approvedObjectives[n]
-            }
+            [n]: !prev[n]
         }));
     };
 
@@ -471,10 +476,10 @@ const IEGTool = () => {
                     <div className="ieg-analysis-section">
                         <h2 className="ieg-analysis-title">Objetivos</h2>
                         <div className="approved-actions-list">
-                            {Object.entries(dataState.approvedObjectives).filter(([_, approved]) => approved).length > 0 ? (
+                            {Object.entries(approvedObjectives).filter(([_, approved]) => approved).length > 0 ? (
                                 Object.entries(
                                     dataState.noAnalysis
-                                        .filter(item => dataState.approvedObjectives[item.n])
+                                        .filter(item => approvedObjectives[item.n])
                                         .reduce((acc, item) => {
                                             if (!acc[item.component]) acc[item.component] = [];
                                             acc[item.component].push(item);
@@ -532,20 +537,20 @@ const IEGTool = () => {
                                         </td>
                                         <td style={{ textAlign: 'center' }}>
                                             <button
-                                                className={`ieg-btn-approve ${dataState.approvedObjectives[item.n] ? 'approved' : ''}`}
+                                                className={`ieg-btn-approve ${approvedObjectives[item.n] ? 'approved' : ''}`}
                                                 onClick={() => toggleApprove(item.n)}
                                                 style={{
                                                     padding: '8px 16px',
                                                     borderRadius: '4px',
                                                     border: 'none',
                                                     cursor: 'pointer',
-                                                    backgroundColor: dataState.approvedObjectives[item.n] ? '#4caf50' : '#002060',
+                                                    backgroundColor: approvedObjectives[item.n] ? '#4caf50' : '#002060',
                                                     color: 'white',
                                                     fontWeight: 'bold',
                                                     transition: 'all 0.3s ease'
                                                 }}
                                             >
-                                                {dataState.approvedObjectives[item.n] ? '✓ Aprobado' : 'Aprobar'}
+                                                {approvedObjectives[item.n] ? '✓ Aprobado' : 'Aprobar'}
                                             </button>
                                         </td>
                                     </tr>
