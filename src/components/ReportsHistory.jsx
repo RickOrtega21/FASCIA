@@ -89,37 +89,37 @@ const ReportsHistory = () => {
                 return (
                 <div className="history-chart-container">
                     <h2 className="history-chart-title">Evolución de la Calificación por Periodo</h2>
-                    <ResponsiveContainer width="100%" height={240}>
-                        <AreaChart data={chartData} margin={{ top: 20, right: 40, left: 0, bottom: 10 }}>
+                    <ResponsiveContainer width="100%" height={120}>
+                        <AreaChart data={chartData} margin={{ top: 10, right: 40, left: 0, bottom: 5 }}>
                             <defs>
-                                <linearGradient id="goldenGrad" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#d4a843" stopOpacity={0.6} />
-                                    <stop offset="100%" stopColor="#e8c97a" stopOpacity={0.15} />
+                                <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#2e7bbd" stopOpacity={0.55} />
+                                    <stop offset="100%" stopColor="#5aaee8" stopOpacity={0.08} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="4 0" stroke="rgba(180,150,80,0.15)" vertical={false} />
+                            <CartesianGrid strokeDasharray="4 0" stroke="rgba(46,123,189,0.12)" vertical={false} />
                             <XAxis
                                 dataKey="fecha"
-                                tick={{ fill: '#8a7040', fontSize: 11, fontFamily: 'serif' }}
-                                axisLine={{ stroke: '#c9a84c', strokeWidth: 1 }}
+                                tick={{ fill: '#2a5a8a', fontSize: 10 }}
+                                axisLine={{ stroke: '#4a8bbf', strokeWidth: 1 }}
                                 tickLine={false}
                             />
                             <YAxis
                                 domain={[0, 100]}
-                                tick={{ fill: '#8a7040', fontSize: 11 }}
+                                tick={{ fill: '#2a5a8a', fontSize: 10 }}
                                 axisLine={false}
                                 tickLine={false}
                                 width={30}
                             />
                             <RechartsTooltip
-                                contentStyle={{ backgroundColor: '#fdf6e3', border: '1px solid #c9a84c', borderRadius: '8px', color: '#5a3e1b', boxShadow: '0 2px 8px rgba(180,140,40,0.2)' }}
-                                labelStyle={{ color: '#8a5c10', fontWeight: 'bold', fontSize: '0.85rem' }}
+                                contentStyle={{ backgroundColor: '#e8f4fd', border: '1px solid #2e7bbd', borderRadius: '8px', color: '#1a3a5c', boxShadow: '0 2px 8px rgba(46,123,189,0.2)' }}
+                                labelStyle={{ color: '#1a5a8a', fontWeight: 'bold', fontSize: '0.85rem' }}
                                 formatter={(value) => [`${value}/100`, 'Calificación']}
                             />
                             {lastPoint && (
                                 <ReferenceLine
                                     x={lastPoint.fecha}
-                                    stroke="#c9a84c"
+                                    stroke="#2e7bbd"
                                     strokeDasharray="5 4"
                                     strokeWidth={1.5}
                                 />
@@ -127,23 +127,23 @@ const ReportsHistory = () => {
                             <Area
                                 type="monotoneX"
                                 dataKey="calificacion"
-                                stroke="#b8892a"
+                                stroke="#2e7bbd"
                                 strokeWidth={2}
-                                fill="url(#goldenGrad)"
+                                fill="url(#blueGrad)"
                                 dot={(props) => {
                                     const { cx, cy, index } = props;
                                     const isLast = index === chartData.length - 1;
                                     return isLast ? (
                                         <g key={`dot-last-${index}`}>
-                                            <circle cx={cx} cy={cy} r={10} fill="#7a5520" />
-                                            <circle cx={cx} cy={cy} r={7} fill="#f5e0a0" />
-                                            <text x={cx} y={cy + 4} textAnchor="middle" fontSize={9} fill="#7a5520" fontWeight="bold">{chartData.length}</text>
+                                            <circle cx={cx} cy={cy} r={10} fill="#1a4a7a" />
+                                            <circle cx={cx} cy={cy} r={7} fill="#d0eaf8" />
+                                            <text x={cx} y={cy + 4} textAnchor="middle" fontSize={9} fill="#1a4a7a" fontWeight="bold">{chartData.length}</text>
                                         </g>
                                     ) : (
-                                        <circle key={`dot-${index}`} cx={cx} cy={cy} r={5} fill="#fdf6e3" stroke="#b8892a" strokeWidth={2} />
+                                        <circle key={`dot-${index}`} cx={cx} cy={cy} r={4} fill="#e8f4fd" stroke="#2e7bbd" strokeWidth={2} />
                                     );
                                 }}
-                                activeDot={{ r: 7, fill: '#c9a84c', stroke: '#fff', strokeWidth: 2 }}
+                                activeDot={{ r: 6, fill: '#2e7bbd', stroke: '#fff', strokeWidth: 2 }}
                                 animationDuration={900}
                             />
                         </AreaChart>
