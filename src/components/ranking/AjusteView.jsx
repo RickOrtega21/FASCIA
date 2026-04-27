@@ -39,13 +39,13 @@ const AjusteView = ({ searchTerm }) => {
     fetchCollaborators();
   }, []);
 
-  // Only show results when there is a search term, and show only the first match
-  const filteredCollaborators = searchTerm.trim()
-    ? collaborators.filter(c =>
+  // Show all when no search term; filter dynamically otherwise (no row limit)
+  const filteredCollaborators = !searchTerm.trim()
+    ? collaborators
+    : collaborators.filter(c =>
         c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.area.toLowerCase().includes(searchTerm.toLowerCase())
-      ).slice(0, 1)
-    : [];
+      );
 
   // ── Add Collaborator via Modal ──────────────────────────────────
   const handleSaveNew = async () => {
@@ -212,21 +212,9 @@ const AjusteView = ({ searchTerm }) => {
           </div>
         </div>
 
-        {/* Table — only shows results when searching */}
+        {/* Table — shows all rows with no search, or filtered rows dynamically */}
         <div className="collab-list" style={{ minHeight: '80px' }}>
-          {!searchTerm.trim() ? (
-            <div style={{
-              textAlign: 'center',
-              padding: '2rem',
-              color: 'var(--text-muted)',
-              fontSize: '0.95rem',
-              fontStyle: 'italic',
-              border: '2px dashed var(--border)',
-              borderRadius: '12px'
-            }}>
-              🔍 Usa el buscador "Sabueso" para encontrar un colaborador
-            </div>
-          ) : filteredCollaborators.length === 0 ? (
+          {filteredCollaborators.length === 0 && searchTerm.trim() ? (
             <div style={{
               textAlign: 'center',
               padding: '2rem',
