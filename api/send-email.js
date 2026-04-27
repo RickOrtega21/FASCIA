@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     const transporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
         port: 587,
-        secure: false, 
+        secure: false,
         auth: {
             user: process.env.EMAIL_USER || 'ricardoortega341@gmail.com',
             pass: process.env.EMAIL_PASS || 'tczp kfas kwir qkjl'
@@ -47,8 +47,8 @@ export default async function handler(req, res) {
         return res.status(200).json({ success: true, messageId: info.messageId });
     } catch (error) {
         console.error('SERVER_MAIL_ERROR:', error);
-        return res.status(500).json({ 
-            error: 'Error enviando correo', 
+        return res.status(500).json({
+            error: 'Error enviando correo',
             details: error.message,
             code: error.code
         });

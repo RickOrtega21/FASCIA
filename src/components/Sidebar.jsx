@@ -12,11 +12,11 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
       subItems: [
         { id: 'fepyc', label: 'FEPYC' },
         { id: 'eri', label: 'ERI' },
-        { id: 'ieg', label: 'IEG' }
+        { id: 'ieg', label: 'IEG' },
+        { id: 'historial', label: 'Historial' }
       ]
     },
     { id: 'calendarios', label: 'Calendarios', icon: '📅' },
-    { id: 'historial', label: 'Historial', icon: '📂' },
   ];
 
   const handleItemClick = (item) => {
@@ -27,7 +27,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     }
   };
 
-  const isMonicaActive = ['fepyc', 'eri', 'ieg'].includes(activeTab);
+  const isMonicaActive = ['fepyc', 'eri', 'ieg', 'historial'].includes(activeTab);
 
   return (
     <aside className="sidebar">
