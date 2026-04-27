@@ -107,6 +107,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
             )}
           </div>
         ))}
+      </nav>
       <div className="sidebar-footer">
         <p>© 2026 FASCIA</p>
       </div>
