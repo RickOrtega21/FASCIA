@@ -6,6 +6,10 @@ import ERITool from './components/ERITool';
 import IEGTool from './components/IEGTool';
 import CalendarView from './components/CalendarView';
 import ReportsHistory from './components/ReportsHistory';
+import RankingView from './components/ranking/RankingView';
+import ProfileView from './components/ranking/ProfileView';
+import DashboardView from './components/ranking/DashboardView';
+import AjusteView from './components/ranking/AjusteView';
 import './index.css';
 
 function App() {
@@ -46,7 +50,23 @@ function App() {
             <ReportsHistory />
           )}
 
-          {!['fepyc', 'eri', 'ieg', 'calendarios', 'historial'].includes(activeTab) && (
+          {activeTab === 'ranking_general' && (
+            <RankingView searchTerm={searchTerm} areaFilter={selectedArea === 'Todas' ? 'Todas' : selectedArea} />
+          )}
+
+          {activeTab === 'ranking_perfil' && (
+            <ProfileView />
+          )}
+
+          {activeTab === 'ranking_stats' && (
+            <DashboardView />
+          )}
+
+          {activeTab === 'ranking_config' && (
+            <AjusteView />
+          )}
+
+          {!['fepyc', 'eri', 'ieg', 'calendarios', 'historial', 'ranking_general', 'ranking_perfil', 'ranking_stats', 'ranking_config', 'calidad_dev'].includes(activeTab) && (
             <div className="placeholder-view">
               <h2>Módulo en Desarrollo</h2>
               <p>Esta función estará disponible próximamente.</p>

@@ -1,0 +1,349 @@
+.profile-container {
+  padding: 10px;
+}
+
+/* 2-column layout: left (sidebar+stats) | center (skills expanded) */
+.profile-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Left column stacks sidebar + total + logros vertically */
+.profile-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Sidebar ── */
+.profile-sidebar {
+  padding: 25px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: center;
+}
+
+.photo-placeholder {
+  width: 130px;
+  height: 130px;
+  background: var(--navy-dark);
+  border-radius: 18px;
+  margin: 0 auto 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4.5rem;
+  border: 4px solid var(--navy-light); /* Fallback */
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease;
+  overflow: hidden;
+}
+
+.photo-placeholder:hover {
+  transform: scale(1.02);
+}
+
+.profile-info-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+  padding: 0 8px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.info-item .label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  letter-spacing: 1.5px;
+  font-weight: 700;
+}
+
+.info-item .value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.area-accent {
+  color: var(--accent) !important;
+}
+
+.profile-tagline {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+/* ── Puntaje Total (below sidebar) ── */
+.total-main {
+  padding: 18px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.summary-value {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.total-bar {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 3px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.total-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--navy-light), var(--accent));
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.total-hint {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  opacity: 0.75;
+}
+
+/* ── N. Logros (below total) ── */
+.achievements-box {
+  padding: 16px 20px;
+  text-align: center;
+}
+
+.achievements-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+  font-family: monospace;
+  font-size: 1.4rem;
+  color: var(--accent);
+}
+
+.logros-hint {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  opacity: 0.75;
+}
+
+.ach-badge-btn {
+  background: var(--accent);
+  color: white;
+  width: 26px;
+  height: 26px;
+  font-size: 1.1rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 10px rgba(0, 119, 182, 0.5);
+}
+
+.ach-badge-btn:hover {
+  transform: scale(1.15);
+  background: #0096c7;
+}
+
+.ach-badge-btn:active {
+  transform: scale(0.92);
+}
+
+/* ── Skills Main ── */
+.skills-main {
+  padding: 25px;
+}
+
+.skills-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 12px;
+}
+
+.legend {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.legend .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.dot.active {
+  background: #4cc9f0;
+  box-shadow: 0 0 8px #4cc9f0;
+}
+
+/* 2-col skill grid */
+.groups-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+
+.skill-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Group title row: title + inline average badge */
+.group-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.group-title {
+  font-size: 0.9rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.group-avg-badge {
+  background: var(--accent);
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 2px 10px;
+  border-radius: 20px;
+  min-width: 34px;
+  text-align: center;
+  box-shadow: 0 0 8px rgba(0, 119, 182, 0.5);
+}
+
+.skills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Interactive skill row */
+.skill-item-interactive {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.skill-item-interactive:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Horizontal [-] [+] buttons */
+.skill-controls-row {
+  display: flex;
+  flex-direction: row;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.control-btn {
+  background: var(--navy-light);
+  border: none;
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s;
+}
+
+.control-btn:hover {
+  background: var(--accent);
+  transform: scale(1.12);
+}
+
+.skill-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skill-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+}
+
+.skill-name {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.skill-value-int {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.progress-track {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(0, 119, 182, 0.5);
+  transition: width 0.3s ease;
+}
+
+@media (max-width: 1100px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+  .groups-container {
+    grid-template-columns: 1fr;
+  }
+}
