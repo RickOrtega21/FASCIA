@@ -94,13 +94,39 @@ const AjusteView = ({ searchTerm }) => {
       }
 
       // Map Excel columns: Nombre, Area, Logros (optional)
-      const records = rows.map(row => ({
-        name: String(row['Nombre'] || row['nombre'] || row['Name'] || '').trim(),
-        area: String(row['Area'] || row['Área'] || row['area'] || '').trim(),
-        achievements: parseInt(row['Logros'] || row['logros'] || 0) || 0,
-        score: 0,
-        skills_data: DEFAULT_SKILLS
-      })).filter(r => r.name && r.area);
+      const records = rows.map(row => {
+        const skills_data = {
+          trabajo_equipo: {
+            adaptabilidad:  parseInt(row['adaptabilidad']  || row['Adaptabilidad']  || 0) || 0,
+            resolucion:     parseInt(row['resolucion']     || row['Resolución']     || row['Resolucion'] || 0) || 0,
+            objetividad:    parseInt(row['objetividad']    || row['Objetividad']    || 0) || 0,
+            integracion:    parseInt(row['integracion']    || row['Integración']    || row['Integracion'] || 0) || 0
+          },
+          disciplina: {
+            responsabilidad: parseInt(row['responsabilidad'] || row['Responsabilidad'] || 0) || 0,
+            compromiso:      parseInt(row['compromiso']      || row['Compromiso']      || 0) || 0,
+            autogestion:     parseInt(row['autogestion']     || row['Autogestión']     || row['Autogestion'] || 0) || 0
+          },
+          servicio: {
+            colaboracion: parseInt(row['colaboracion'] || row['Colaboración'] || row['Colaboracion'] || 0) || 0,
+            negociacion:  parseInt(row['negociacion']  || row['Negociación']  || row['Negociacion']  || 0) || 0,
+            comunicacion: parseInt(row['comunicacion'] || row['Comunicación'] || row['Comunicacion'] || 0) || 0,
+            respeto:      parseInt(row['respeto']      || row['Respeto']      || 0) || 0
+          },
+          participacion: {
+            creatividad: parseInt(row['creatividad'] || row['Creatividad'] || 0) || 0,
+            actitud:     parseInt(row['actitud']     || row['Actitud']     || 0) || 0,
+            iniciativa:  parseInt(row['iniciativa']  || row['Iniciativa']  || 0) || 0
+          }
+        };
+        return {
+          name:         String(row['Nombre'] || row['nombre'] || row['Name'] || '').trim(),
+          area:         String(row['Area']   || row['Área']   || row['area'] || '').trim(),
+          achievements: parseInt(row['Logros'] || row['logros'] || 0) || 0,
+          score:        parseInt(row['Puntaje'] || row['puntaje'] || row['Score'] || 0) || 0,
+          skills_data
+        };
+      }).filter(r => r.name && r.area);
 
       if (records.length === 0) {
         alert('No se encontraron filas válidas. Asegúrate de tener columnas: Nombre, Area (y opcionalmente Logros).');
@@ -271,6 +297,28 @@ const AjusteView = ({ searchTerm }) => {
                     {tier.bono ? '✅' : '❌'}
                   </button>
                 </div>
+              </div>
+              <div style={{ marginTop: '12px' }}>
+                <label style={{ fontSize: '0.72rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>🏅 Reconocimiento</label>
+                <textarea
+                  rows={3}
+                  placeholder="Describe el reconocimiento o beneficio para este nivel…"
+                  value={tier.recognition || ''}
+                  onChange={e => updateTier(tier.id, 'recognition', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: `1px solid ${tier.color}55`,
+                    background: `${tier.color}08`,
+                    color: 'inherit',
+                    fontSize: '0.82rem',
+                    resize: 'vertical',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    transition: 'border-color 0.2s'
+                  }}
+                />
               </div>
             </div>
           ))}
