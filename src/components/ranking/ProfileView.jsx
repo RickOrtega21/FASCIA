@@ -4,7 +4,7 @@ import { calculateSkillsBase } from '../../data/userState';
 import { supabase } from '../../supabaseClient';
 import './ProfileView.css';
 
-const ProfileView = () => {
+const ProfileView = ({ searchTerm }) => {
   const [collaborators, setCollaborators] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
@@ -17,12 +17,25 @@ const ProfileView = () => {
       const { data, error } = await supabase.from('collaborators').select('*').order('name');
       if (!error && data.length > 0) {
         setCollaborators(data);
-        setSelectedId(data[0].id);
       }
       setLoading(false);
     };
     fetchAll();
   }, []);
+
+  // Listen to searchTerm and auto-select
+  useEffect(() => {
+    if (collaborators.length > 0) {
+      if (!searchTerm) {
+        setSelectedId(collaborators[0].id);
+      } else {
+        const match = collaborators.find(c => 
+          c.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        if (match) setSelectedId(match.id);
+      }
+    }
+  }, [searchTerm, collaborators]);
 
   useEffect(() => {
     if (selectedId) {
@@ -98,18 +111,6 @@ const ProfileView = () => {
 
   return (
     <div className="profile-container animate-fade">
-      <div className="profile-selector glass-panel" style={{ marginBottom: '20px', padding: '15px', display: 'flex', gap: '15px', alignItems: 'center' }}>
-        <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Seleccionar Colaborador:</span>
-        <select 
-          value={selectedId} 
-          onChange={(e) => setSelectedId(e.target.value)}
-          style={{ padding: '8px', borderRadius: '8px', border: '1px solid var(--border)', flex: 1, maxWidth: '300px' }}
-        >
-          {collaborators.map(c => (
-            <option key={c.id} value={c.id}>{c.name} ({c.area})</option>
-          ))}
-        </select>
-      </div>
 
       <div className="profile-layout">
         <div className="profile-left-col">

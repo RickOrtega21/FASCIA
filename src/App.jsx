@@ -51,11 +51,11 @@ function App() {
           )}
 
           {activeTab === 'ranking_general' && (
-            <RankingView searchTerm={searchTerm} areaFilter={selectedArea === 'Todas' ? 'Todas' : selectedArea} />
+            <RankingView searchTerm={searchTerm} areaFilter="Todas" />
           )}
 
           {activeTab === 'ranking_perfil' && (
-            <ProfileView />
+            <ProfileView searchTerm={searchTerm} />
           )}
 
           {activeTab === 'ranking_stats' && (
@@ -63,7 +63,7 @@ function App() {
           )}
 
           {activeTab === 'ranking_config' && (
-            <AjusteView />
+            <AjusteView searchTerm={searchTerm} />
           )}
 
           {!['fepyc', 'eri', 'ieg', 'calendarios', 'historial', 'ranking_general', 'ranking_perfil', 'ranking_stats', 'ranking_config', 'calidad_dev'].includes(activeTab) && (

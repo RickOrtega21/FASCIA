@@ -52,11 +52,9 @@ const RankingView = ({ searchTerm, areaFilter }) => {
   // ── View: by Collaborator (filtered, position preserved) ────────
   const filteredWithRealRank = useMemo(() => {
     return baseData.filter(c => {
-      const matchesName = (c.name || '').toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesArea = areaFilter === 'Todas' || c.area === areaFilter;
-      return matchesName && matchesArea;
+      return (c.name || '').toLowerCase().includes(searchTerm.toLowerCase());
     });
-  }, [baseData, searchTerm, areaFilter]);
+  }, [baseData, searchTerm]);
 
   // Pagination
   const totalItems = viewMode === 'area' ? areaRanking.length : filteredWithRealRank.length;
@@ -74,7 +72,7 @@ const RankingView = ({ searchTerm, areaFilter }) => {
   const goLast = () => setPage(totalPages);
 
   // reset page when filters change
-  useEffect(() => { setPage(1); }, [searchTerm, areaFilter, viewMode]);
+  useEffect(() => { setPage(1); }, [searchTerm, viewMode]);
 
   if (loading) return <div className="ranking-container"><p>Cargando ranking...</p></div>;
 
@@ -103,10 +101,6 @@ const RankingView = ({ searchTerm, areaFilter }) => {
           <div className="stat-item">
             <span className="stat-label">Página</span>
             <span className="stat-value">{safePage}/{totalPages}</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">Área Filtrada</span>
-            <span className="stat-value" style={{ fontSize: '1rem', color: 'var(--accent)' }}>{areaFilter}</span>
           </div>
         </div>
       </div>
@@ -189,7 +183,7 @@ const RankingView = ({ searchTerm, areaFilter }) => {
 
         {totalItems === 0 && (
           <div className="no-results-msg">
-            No se encontraron resultados para "{searchTerm}" en {areaFilter}.
+            No se encontraron resultados para "{searchTerm}".
           </div>
         )}
       </div>

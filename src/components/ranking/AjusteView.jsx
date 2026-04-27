@@ -4,7 +4,7 @@ import { supabase } from '../../supabaseClient';
 import TowerIcon from './TowerIcon';
 import './AjusteView.css';
 
-const AjusteView = () => {
+const AjusteView = ({ searchTerm }) => {
   const [tiers, setTiers] = useState(TIERS);
   const [collaborators, setCollaborators] = useState([]);
   const [newCollab, setNewCollab] = useState({ name: '', area: '', score: 0, achievements: 0 });
@@ -23,6 +23,11 @@ const AjusteView = () => {
   useEffect(() => {
     fetchCollaborators();
   }, []);
+
+  const filteredCollaborators = collaborators.filter(c => 
+    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.area.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const addCollaborator = async () => {
     if (!newCollab.name || !newCollab.area) return alert('Por favor ingresa nombre y área');
@@ -110,7 +115,7 @@ const AjusteView = () => {
               </tr>
             </thead>
             <tbody>
-              {collaborators.map(c => (
+              {filteredCollaborators.map(c => (
                 <tr key={c.id}>
                   <td>{c.name}</td>
                   <td>{c.area}</td>
