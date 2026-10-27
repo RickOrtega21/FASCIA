@@ -3,7 +3,7 @@ import './ReportsHistory.css';
 import { supabase } from '../supabaseClient';
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid,
-    Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine
+    Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine, LabelList
 } from 'recharts';
 
 const ReportsHistory = () => {
@@ -145,7 +145,14 @@ const ReportsHistory = () => {
                                 }}
                                 activeDot={{ r: 6, fill: '#2e7bbd', stroke: '#fff', strokeWidth: 2 }}
                                 animationDuration={900}
-                            />
+                            >
+                                <LabelList
+                                    dataKey="calificacion"
+                                    position="top"
+                                    style={{ fill: '#d0eaf8', fontSize: '11px', fontWeight: 'bold' }}
+                                    formatter={(value) => `${value}`}
+                                />
+                            </Area>
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
