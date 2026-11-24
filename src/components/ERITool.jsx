@@ -6,7 +6,7 @@ import questionsData from '../data/monica_questions.json';
 import { supabase } from '../supabaseClient';
 
 const AREAS = [
-    'Operaciones', 'Sistemas', 'Recursos Humanos', 'Comercial',
+    'Sistemas', 'Recursos Humanos', 'Comercial',
     'PMO y UNE', 'Juridico', 'Finanzas', 'Suscripción Daños',
     'Indemnización Daños', 'Suscripción Personas', 'Reaseguro',
     'Indemnización Personas', 'Gobierno Corporativo', 'Auditoria', 'Técnico'
@@ -61,7 +61,7 @@ const ERITool = ({ isPrintMode = false }) => {
 
                 // Create a map for quick lookup
                 const remoteDataMap = {};
-                supabaseData.forEach(item => {
+                (supabaseData || []).forEach(item => {
                     remoteDataMap[item.area_name] = item.data;
                 });
 

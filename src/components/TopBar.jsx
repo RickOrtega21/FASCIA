@@ -2,7 +2,7 @@ import React from 'react';
 import './TopBar.css';
 
 const AREAS = [
-    'Operaciones', 'Sistemas', 'Recursos Humanos', 'Comercial',
+    'Sistemas', 'Recursos Humanos', 'Comercial',
     'PMO y UNE', 'Juridico', 'Finanzas', 'Suscripción Daños',
     'Indemnización Daños', 'Suscripción Personas', 'Reaseguro',
     'Indemnización Personas', 'Gobierno Corporativo', 'Auditoria', 'Técnico'

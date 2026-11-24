@@ -8,7 +8,7 @@ import { createRoot } from 'react-dom/client';
 import ERITool from './ERITool';
 
 const AREAS = [
-    'Operaciones', 'Sistemas', 'Recursos Humanos', 'Comercial',
+    'Sistemas', 'Recursos Humanos', 'Comercial',
     'PMO y UNE', 'Juridico', 'Finanzas', 'Suscripción Daños',
     'Indemnización Daños', 'Suscripción Personas', 'Reaseguro',
     'Indemnización Personas', 'Gobierno Corporativo', 'Auditoria', 'Técnico'
@@ -87,7 +87,7 @@ const IEGTool = () => {
             }
 
             const remoteDataMap = {};
-            supabaseData.forEach(item => {
+            (supabaseData || []).forEach(item => {
                 remoteDataMap[item.area_name] = item.data;
             });
 
